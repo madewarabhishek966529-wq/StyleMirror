@@ -1,7 +1,17 @@
 # Miscellaneous
 *.class
 *.log
+# Python and backend
+__pycache__/
 *.pyc
+.pytest_cache/
+.venv/
+*.db
+stylemirror.db
+storage/
+.env
+.env.*
+!.env.example
 *.swp
 .DS_Store
 .atom/

@@ -57,3 +57,4 @@ class StyleModel {
   @override
   int get hashCode => id.hashCode;
 }
+

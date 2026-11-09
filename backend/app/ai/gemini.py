@@ -63,3 +63,4 @@ class GeminiProvider(ImageProvider):
 
         logger.warning(f"Gemini keys exhausted or failed ({last_error}). Falling back to safe mock preview.")
         return await self.mock_fallback.edit(user_image, prompt, reference_images)
+

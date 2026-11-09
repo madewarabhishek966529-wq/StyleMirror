@@ -38,3 +38,4 @@ def test_empty_key_pool():
     assert pool.has_keys is False
     with pytest.raises(RuntimeError):
         pool.next()
+

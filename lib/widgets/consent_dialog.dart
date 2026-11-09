@@ -194,3 +194,4 @@ class _ConsentDialogState extends State<ConsentDialog> {
     );
   }
 }
+

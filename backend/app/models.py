@@ -76,3 +76,4 @@ Index(
     Generation.beard_style_id,
     Generation.view,
 )
+

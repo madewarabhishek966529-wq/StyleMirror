@@ -33,3 +33,4 @@ def test_24h_cleanup_purges_expired_only(db_session):
     remaining_ids = [p.id for p in db_session.query(Photo).all()]
     assert active_photo.id in remaining_ids
     assert expired_photo.id not in remaining_ids
+

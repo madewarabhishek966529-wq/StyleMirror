@@ -11,3 +11,4 @@ class ImageProvider(ABC):
     ) -> bytes:
         """Takes user selfie bytes + styling prompt and returns styled image bytes."""
         pass
+

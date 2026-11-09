@@ -52,3 +52,4 @@ def test_generation_photo_not_found(client):
     res = client.post("/v1/generations", json=payload)
     assert res.status_code == 404
     assert res.json()["detail"]["error"]["code"] == "PHOTO_NOT_FOUND"
+

@@ -23,3 +23,4 @@ class ApiConstants {
   /// Timeout for network requests in seconds
   static const int timeoutSeconds = 30;
 }
+

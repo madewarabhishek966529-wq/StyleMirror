@@ -17,3 +17,4 @@ def get_styles(
         query = query.filter(Style.type == type)
     
     return query.order_by(Style.sort_order.asc()).all()
+

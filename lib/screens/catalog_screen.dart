@@ -238,3 +238,4 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 }
+

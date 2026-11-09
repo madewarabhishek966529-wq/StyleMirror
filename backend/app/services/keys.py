@@ -45,3 +45,4 @@ class KeyPool:
         masked = key[:4] + "..." + key[-4:] if len(key) >= 8 else "key_***"
         logger.error(f"AI_KEY_INVALID: Key failed authorization: {masked}")
         self._exhausted_keys.add(key)
+

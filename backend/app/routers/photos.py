@@ -80,3 +80,4 @@ def delete_photo(
     db.commit()
 
     return {"ok": True, "message": "Photo and all associated generations permanently deleted."}
+

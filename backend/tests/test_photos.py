@@ -42,3 +42,4 @@ def test_photo_immediate_delete(client):
     # Confirm 404 on subsequent delete
     del_again = client.delete(f"/v1/photos/{photo_id}")
     assert del_again.status_code == 404
+

@@ -76,3 +76,4 @@ def verify_signed_token(file_path: str, token: str) -> bool:
         return hmac.compare_digest(expected_sig, provided_sig)
     except Exception:
         return False
+

@@ -20,3 +20,4 @@ if __name__ == "__main__":
     print("Seeding all 25 Hairstyles + 25 Beard styles...")
     seed_default_styles()
     print("✓ Done! Styles catalog successfully seeded.")
+

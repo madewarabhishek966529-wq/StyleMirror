@@ -94,3 +94,4 @@ class StepIndicator extends StatelessWidget {
     );
   }
 }
+

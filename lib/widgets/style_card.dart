@@ -165,3 +165,4 @@ class StyleCard extends StatelessWidget {
     );
   }
 }
+

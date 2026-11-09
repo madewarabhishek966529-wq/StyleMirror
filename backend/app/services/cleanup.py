@@ -25,3 +25,4 @@ def run_24h_cleanup(db: Session) -> int:
         logger.info(f"Cleanup purged {count} expired photos and their outputs.")
 
     return count
+

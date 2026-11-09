@@ -51,3 +51,4 @@ def build_prompt(
         prompt += STRICT_IDENTITY_SUFFIX
 
     return prompt.strip()
+

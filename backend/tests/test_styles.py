@@ -21,3 +21,4 @@ def test_get_beard_styles_only(client):
     assert all(item["type"] == "beard" for item in data)
     assert any(item["id"] == "B01" for item in data)
     assert any(item["name"] == "Full Beard" for item in data)
+

@@ -170,3 +170,4 @@ class PrivacyScreen extends StatelessWidget {
     );
   }
 }
+

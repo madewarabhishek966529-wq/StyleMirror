@@ -31,3 +31,4 @@ def serve_file(
         )
 
     return Response(content=file_bytes, media_type="image/jpeg")
+

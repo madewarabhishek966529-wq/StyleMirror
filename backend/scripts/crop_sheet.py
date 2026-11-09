@@ -48,3 +48,4 @@ if __name__ == "__main__":
     prefix = "H" if args.type == "hair" else "B"
     out_folder = f"{args.out}/{args.type}"
     print(f"Ready to process {args.type} sheet with prefix {prefix} -> {out_folder}")
+

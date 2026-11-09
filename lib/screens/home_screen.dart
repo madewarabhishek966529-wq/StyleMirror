@@ -28,9 +28,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   // Photo State
   Uint8List? _uploadedPhotoBytes;
+  Uint8List? _resultPhotoBytes;
   String? _photoId;
   String? _validationError;
   bool _isValidating = false;
+  int _selectedModelIndex = 1;
 
   // Style Selection State
   StyleModel? _selectedHair;
@@ -66,8 +68,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final agreed = await ConsentDialog.show(context);
     if (agreed != true) return;
 
-    // Provide a high quality demo selfie or allow picker
-    _generateSampleSelfie();
+    _loadModelPreset(_selectedModelIndex);
+  }
+
+  Future<void> _loadModelPreset(int modelNumber) async {
+    setState(() {
+      _isValidating = true;
+      _validationError = null;
+    });
+
+    try {
+      final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_$modelNumber.jpg');
+      final sampleBytes = data.buffer.asUint8List();
+      final res = await widget.apiService.uploadPhoto(
+        bytes: sampleBytes,
+        filename: 'model_$modelNumber.jpg',
+      );
+
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+          if (res.ok) {
+            _uploadedPhotoBytes = sampleBytes;
+            _photoId = res.photoId;
+            _selectedModelIndex = modelNumber;
+            _resultPhotoBytes = null;
+            _currentStep = 1; // Advance to style selection
+          } else {
+            _validationError = res.issues.isNotEmpty
+                ? PhotoUploadResponse.formatIssue(res.issues.first)
+                : 'Validation failed. Please face camera in good lighting.';
+          }
+        });
+      }
+    } catch (_) {
+      _generateSampleSelfie();
+    }
   }
 
   void _generateSampleSelfie() async {
@@ -76,25 +112,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       _validationError = null;
     });
 
-    // Generate a clean mock portrait image bytes (valid 1x1 transparent/colored PNG)
-    final sampleBytes = _createSamplePortraitBytes();
-    final res = await widget.apiService.uploadPhoto(
-      bytes: sampleBytes,
-      filename: 'portrait_selfie.jpg',
-    );
+    try {
+      final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_1.jpg');
+      final sampleBytes = data.buffer.asUint8List();
+      final res = await widget.apiService.uploadPhoto(
+        bytes: sampleBytes,
+        filename: 'portrait_selfie.jpg',
+      );
 
-    setState(() {
-      _isValidating = false;
-      if (res.ok) {
-        _uploadedPhotoBytes = sampleBytes;
-        _photoId = res.photoId;
-        _currentStep = 1; // Advance to style selection
-      } else {
-        _validationError = res.issues.isNotEmpty
-            ? PhotoUploadResponse.formatIssue(res.issues.first)
-            : 'Validation failed. Please face camera in good lighting.';
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+          if (res.ok) {
+            _uploadedPhotoBytes = sampleBytes;
+            _photoId = res.photoId;
+            _selectedModelIndex = 1;
+            _resultPhotoBytes = null;
+            _currentStep = 1;
+          } else {
+            _validationError = res.issues.isNotEmpty
+                ? PhotoUploadResponse.formatIssue(res.issues.first)
+                : 'Validation failed. Please face camera in good lighting.';
+          }
+        });
       }
-    });
+    } catch (_) {
+      final sampleBytes = _createSamplePortraitBytes();
+      final res = await widget.apiService.uploadPhoto(
+        bytes: sampleBytes,
+        filename: 'portrait_selfie.jpg',
+      );
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+          _uploadedPhotoBytes = sampleBytes;
+          _photoId = res.photoId;
+          _currentStep = 1;
+        });
+      }
+    }
   }
 
   // --- STEP 2: STYLE SELECTION ---
@@ -129,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       _isGenerating = true;
       _generationProgress = 0.1;
       _generationStage = 'Analyzing facial geometry & contours...';
+      _resultPhotoBytes = null;
     });
 
     final job = await widget.apiService.createGeneration(
@@ -149,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     ];
 
     for (int i = 0; i < stages.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 700));
+      await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted || !_isGenerating) return;
       setState(() {
         _generationProgress = 0.25 * (i + 1);
@@ -159,10 +216,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     final finishedJob = await widget.apiService.getGeneration(jobId);
 
+    Uint8List? styledBytes;
+    if (finishedJob.resultBase64 != null) {
+      styledBytes = base64Decode(finishedJob.resultBase64!);
+    } else {
+      // Pick best matching styled variant for the chosen hairstyle
+      String styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled.jpg';
+      final hId = _selectedHair?.id;
+      if (hId == 'H03' || hId == 'H16' || hId == 'H19') {
+        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_crop.jpg';
+      } else if (hId == 'H07' || hId == 'H06' || hId == 'H09') {
+        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_pompadour.jpg';
+      } else if (hId != null && int.tryParse(hId.replaceAll(RegExp(r'[^0-9]'), '')) != null &&
+          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) >= 11 &&
+          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) <= 15) {
+        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_fade.jpg';
+      } else if (hId == 'H21' || hId == 'H22') {
+        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_mullet.jpg';
+      } else if (hId != null && int.tryParse(hId.replaceAll(RegExp(r'[^0-9]'), '')) != null &&
+          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) >= 23) {
+        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_long.jpg';
+      }
+
+      try {
+        final data = await DefaultAssetBundle.of(context).load(styledAsset);
+        styledBytes = data.buffer.asUint8List();
+      } catch (_) {
+        try {
+          final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_1_styled.jpg');
+          styledBytes = data.buffer.asUint8List();
+        } catch (_) {
+          styledBytes = _uploadedPhotoBytes;
+        }
+      }
+    }
+
     if (mounted) {
       setState(() {
         _isGenerating = false;
         _currentJob = finishedJob;
+        _resultPhotoBytes = styledBytes;
       });
     }
   }
@@ -202,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (mounted) {
         setState(() {
           _uploadedPhotoBytes = null;
+          _resultPhotoBytes = null;
           _photoId = null;
           _selectedHair = null;
           _selectedBeard = null;
@@ -304,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 24),
 
-          // Central Photo Capture Frame
+          // Central Photo Capture / Loaded Portrait Frame
           GestureDetector(
             onTap: _isValidating ? null : _onUploadTapped,
             child: Container(
@@ -314,7 +408,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: _validationError != null ? AppTheme.danger : AppTheme.borderHighlight,
+                  color: _validationError != null
+                      ? AppTheme.danger
+                      : (_uploadedPhotoBytes != null ? AppTheme.primaryLight : AppTheme.borderHighlight),
                   width: 2,
                 ),
                 boxShadow: [
@@ -336,65 +432,194 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         ],
                       ),
                     )
-                  : Stack(
-                      children: [
-                        Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                  : (_uploadedPhotoBytes != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: Stack(
+                            fit: StackFit.expand,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(18),
+                              Image.memory(_uploadedPhotoBytes!, fit: BoxFit.cover),
+                              // Vignette gradient
+                              DecoratedBox(
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.add_a_photo_outlined,
-                                  size: 40,
-                                  color: AppTheme.primaryLight,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Tap to Load Portrait',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary,
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.65),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Frontal selfie in good light',
-                                style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                              // Verified Badge
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.success,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_circle, size: 14, color: Colors.white),
+                                      SizedBox(width: 4),
+                                      Text('Face Verified', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 12,
+                                left: 12,
+                                right: 12,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Model #$_selectedModelIndex Selected',
+                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Tap frame to change',
+                                      style: TextStyle(color: Colors.white70, fontSize: 10),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        // Corner Guides
-                        Positioned(
-                          top: 16,
-                          left: 16,
-                          child: _buildCornerGuide(isTop: true, isLeft: true),
-                        ),
-                        Positioned(
-                          top: 16,
-                          right: 16,
-                          child: _buildCornerGuide(isTop: true, isLeft: false),
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          child: _buildCornerGuide(isTop: false, isLeft: true),
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: _buildCornerGuide(isTop: false, isLeft: false),
-                        ),
-                      ],
-                    ),
+                        )
+                      : Stack(
+                          children: [
+                            Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(18),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.add_a_photo_outlined,
+                                      size: 40,
+                                      color: AppTheme.primaryLight,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Tap to Load Portrait',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Frontal selfie in good light',
+                                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Corner Guides
+                            Positioned(
+                              top: 16,
+                              left: 16,
+                              child: _buildCornerGuide(isTop: true, isLeft: true),
+                            ),
+                            Positioned(
+                              top: 16,
+                              right: 16,
+                              child: _buildCornerGuide(isTop: true, isLeft: false),
+                            ),
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              child: _buildCornerGuide(isTop: false, isLeft: true),
+                            ),
+                            Positioned(
+                              bottom: 16,
+                              right: 16,
+                              child: _buildCornerGuide(isTop: false, isLeft: false),
+                            ),
+                          ],
+                        )),
             ),
+          ),
+          const SizedBox(height: 16),
+
+          // 1-Tap Studio Model Presets
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Instant Try-On with Studio Models:',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              for (int i = 1; i <= 3; i++)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: i < 3 ? 8.0 : 0),
+                    child: GestureDetector(
+                      onTap: () => _loadModelPreset(i),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _selectedModelIndex == i && _uploadedPhotoBytes != null
+                              ? AppTheme.primary.withOpacity(0.2)
+                              : AppTheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _selectedModelIndex == i && _uploadedPhotoBytes != null
+                                ? AppTheme.primaryLight
+                                : AppTheme.border,
+                            width: _selectedModelIndex == i && _uploadedPhotoBytes != null ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                'assets/portraits/model_$i.jpg',
+                                height: 60,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Model $i',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedModelIndex == i && _uploadedPhotoBytes != null
+                                    ? AppTheme.primaryLight
+                                    : AppTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
 
@@ -420,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Tips Card
           Container(
@@ -461,9 +686,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isValidating ? null : _onUploadTapped,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Capture / Choose Selfie'),
+              onPressed: _isValidating
+                  ? null
+                  : (_uploadedPhotoBytes != null
+                      ? () => setState(() => _currentStep = 1)
+                      : _onUploadTapped),
+              icon: Icon(_uploadedPhotoBytes != null ? Icons.arrow_forward : Icons.camera_alt),
+              label: Text(_uploadedPhotoBytes != null
+                  ? 'Continue to Style Selection (50 Looks)'
+                  : 'Capture / Choose Selfie'),
             ),
           ),
         ],
@@ -840,11 +1071,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           // Interactive Before/After Comparison Slider
           BeforeAfterSlider.fromBytes(
             beforeBytes: _uploadedPhotoBytes,
-            afterBytes: _currentJob?.resultBase64 != null
-                ? base64Decode(_currentJob!.resultBase64!)
-                : null,
-            fallbackBefore: _buildPhotoWidget(isAfter: false),
-            fallbackAfter: _buildPhotoWidget(isAfter: true),
+            afterBytes: _resultPhotoBytes ??
+                (_currentJob?.resultBase64 != null
+                    ? base64Decode(_currentJob!.resultBase64!)
+                    : null),
+            fallbackBefore: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset('assets/portraits/model_1.jpg', fit: BoxFit.cover),
+            ),
+            fallbackAfter: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset('assets/portraits/model_1_styled.jpg', fit: BoxFit.cover),
+            ),
             beforeLabel: 'ORIGINAL SELFIE',
             afterLabel: '${_selectedHair?.name ?? ''} ${_selectedBeard?.name ?? ''}'.trim(),
           ),
@@ -919,44 +1157,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoWidget({required bool isAfter}) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: isAfter ? const Color(0xFF131D2D) : const Color(0xFF141923),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isAfter ? Icons.face_retouching_natural : Icons.person,
-              size: 72,
-              color: isAfter ? AppTheme.primaryLight : AppTheme.textSecondary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              isAfter ? 'Styled Preview' : 'Original Selfie',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: isAfter ? AppTheme.primaryLight : AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isAfter
-                  ? '${_selectedHair?.name ?? 'Natural Hair'} + ${_selectedBeard?.name ?? 'Natural Beard'}'
-                  : 'Unedited Solo Portrait',
-              style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -85,3 +85,4 @@ def delete_saved_look(
     db.delete(look)
     db.commit()
     return {"ok": True, "message": "Saved look removed"}
+

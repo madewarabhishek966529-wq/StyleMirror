@@ -23,6 +23,14 @@ class StyleModel {
   bool get isHair => type == 'hair';
   bool get isBeard => type == 'beard';
 
+  /// Standard asset path for Flutter Image.asset (without leading slash)
+  String get assetPath {
+    if (thumbUrl.startsWith('/')) {
+      return thumbUrl.substring(1);
+    }
+    return thumbUrl;
+  }
+
   factory StyleModel.fromJson(Map<String, dynamic> json) {
     return StyleModel(
       id: json['id'] as String,

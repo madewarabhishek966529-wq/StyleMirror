@@ -81,3 +81,4 @@ def get_face_shape_suggestions(
         recommended_hair=[StyleResponse.model_validate(s) for s in sorted_hair],
         recommended_beard=[StyleResponse.model_validate(s) for s in sorted_beard],
     )
+

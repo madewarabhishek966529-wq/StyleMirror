@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stylemirror/data/style_catalog_data.dart';
 
@@ -12,6 +13,14 @@ void main() {
     test('all style IDs are unique', () {
       final ids = StyleCatalogData.allStyles.map((s) => s.id).toSet();
       expect(ids.length, 50);
+    });
+
+    test('all 50 style asset images exist on disk', () {
+      for (final style in StyleCatalogData.allStyles) {
+        expect(style.assetPath.isNotEmpty, true);
+        final file = File(style.assetPath);
+        expect(file.existsSync(), true, reason: 'Asset image missing: ${style.assetPath}');
+      }
     });
 
     test('hairstyles have valid H01-H25 IDs and non-empty prompt hints', () {

@@ -88,47 +88,87 @@ class StyleCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Visual style avatar with gradient
+              // Visual style image with high-definition thumbnail
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isSelected
-                          ? [
-                              AppTheme.primary.withOpacity(0.2),
-                              AppTheme.accentCyan.withOpacity(0.1),
-                            ]
-                          : [
-                              AppTheme.background,
-                              AppTheme.surfaceElevated,
-                            ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.border.withOpacity(0.5)),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          style.isHair ? Icons.content_cut : Icons.brush,
-                          size: 32,
-                          color: isSelected ? AppTheme.primaryLight : AppTheme.textSecondary,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          style.category,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? AppTheme.primaryLight : AppTheme.textMuted,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Thumbnail image loaded from asset
+                      Image.asset(
+                        style.assetPath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isSelected
+                                    ? [
+                                        AppTheme.primary.withOpacity(0.2),
+                                        AppTheme.accentCyan.withOpacity(0.1),
+                                      ]
+                                    : [
+                                        AppTheme.background,
+                                        AppTheme.surfaceElevated,
+                                      ],
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                style.isHair ? Icons.content_cut : Icons.brush,
+                                size: 36,
+                                color: isSelected ? AppTheme.primaryLight : AppTheme.textSecondary,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      // Bottom subtle gradient overlay for contrast
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 38,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.75),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      // Category pill on bottom of thumbnail image
+                      Positioned(
+                        bottom: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.75),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 0.5),
+                          ),
+                          child: Text(
+                            style.category,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

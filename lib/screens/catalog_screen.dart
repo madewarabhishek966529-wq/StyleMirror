@@ -59,6 +59,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 ],
               ),
               const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 180,
+                  width: double.infinity,
+                  child: Image.asset(
+                    style.assetPath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
               Text(
                 style.name,
                 style: const TextStyle(

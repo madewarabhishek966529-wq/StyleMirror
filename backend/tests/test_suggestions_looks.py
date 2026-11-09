@@ -41,3 +41,4 @@ def test_save_and_list_looks(client):
     del_res = client.delete(f"/v1/looks/{look_id}")
     assert del_res.status_code == 200
     assert del_res.json()["ok"] is True
+

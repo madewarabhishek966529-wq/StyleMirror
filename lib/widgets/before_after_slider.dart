@@ -16,6 +16,7 @@ class BeforeAfterSlider extends StatefulWidget {
   final String beforeLabel;
   final String afterLabel;
   final double initialPosition; // 0.0 to 1.0
+  final double? height;
 
   const BeforeAfterSlider({
     super.key,
@@ -24,6 +25,7 @@ class BeforeAfterSlider extends StatefulWidget {
     this.beforeLabel = 'ORIGINAL',
     this.afterLabel = 'STYLE PREVIEW',
     this.initialPosition = 0.5,
+    this.height,
   });
 
   /// Factory helper for creating slider from Uint8List memory bytes or fallback widgets
@@ -35,6 +37,7 @@ class BeforeAfterSlider extends StatefulWidget {
     required Widget fallbackAfter,
     String beforeLabel = 'ORIGINAL',
     String afterLabel = 'STYLE PREVIEW',
+    double? height,
   }) {
     return BeforeAfterSlider(
       key: key,
@@ -46,6 +49,7 @@ class BeforeAfterSlider extends StatefulWidget {
           : fallbackAfter,
       beforeLabel: beforeLabel,
       afterLabel: afterLabel,
+      height: height,
     );
   }
 
@@ -98,15 +102,13 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Container(
+            height: widget.height ?? 380,
             decoration: BoxDecoration(
               color: AppTheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppTheme.border, width: 1.5),
             ),
-            child: AspectRatio(
-              aspectRatio: 3 / 4,
-              child: _buildComparisonContent(),
-            ),
+            child: _buildComparisonContent(),
           ),
         ),
       ],

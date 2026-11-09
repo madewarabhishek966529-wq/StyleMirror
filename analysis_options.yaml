@@ -1,5 +1,7 @@
 # Custom analysis options for StyleMirror
 analyzer:
+  errors:
+    deprecated_member_use: ignore
   exclude:
     - build/**
     - android/**

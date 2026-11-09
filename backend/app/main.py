@@ -128,18 +128,14 @@ async def periodic_cleanup_task():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: ensure tables & storage exist
-    Base.metadata.create_all(bind=engine)
     ensure_storage()
+    Base.metadata.create_all(bind=engine)
     seed_default_styles()
-    cleanup_task = asyncio.create_task(periodic_cleanup_task())
     yield
-    # Shutdown
-    cleanup_task.cancel()
 
 app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
-    lifespan=lifespan,
 )
 
 # CORS Middleware

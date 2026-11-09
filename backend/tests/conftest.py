@@ -4,6 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import settings
+settings.environment = "test"
+
 from app.main import app
 from app.db import Base, get_db
 from app.main import seed_default_styles
@@ -33,25 +36,15 @@ def setup_test_db():
 
 @pytest.fixture
 def db_session():
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
+    session = TestingSessionLocal()
     yield session
-
     session.close()
-    transaction.rollback()
-    connection.close()
 
 @pytest.fixture
 def client(db_session):
     def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
+        yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
+    yield TestClient(app)
     app.dependency_overrides.clear()

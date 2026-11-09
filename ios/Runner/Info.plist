@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>StyleMirror requires camera access to capture your selfie for hairstyle and beard try-on preview.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>StyleMirror requires photo library access to select your portrait photo.</string>
 </dict>
 </plist>

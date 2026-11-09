@@ -67,6 +67,19 @@ class Generation(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     photo = relationship("Photo", back_populates="generations")
+    looks = relationship("Look", back_populates="generation", cascade="all, delete-orphan")
+
+class Look(Base):
+    __tablename__ = "looks"
+
+    id = Column(String(36), primary_key=True, default=gen_uuid)
+    user_id = Column(String(36), nullable=True)
+    generation_id = Column(String(36), ForeignKey("generations.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(100), default="My Custom Style")
+    share_id = Column(String(32), unique=True, default=lambda: uuid.uuid4().hex[:10])
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    generation = relationship("Generation", back_populates="looks")
 
 # Index for fast cache lookups on identical combinations
 Index(

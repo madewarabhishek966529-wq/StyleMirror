@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .db import engine, Base, SessionLocal
 from .models import Style
-from .routers import styles, photos, generations, files
+from .routers import styles, photos, generations, files, suggestions, looks
 from .services.cleanup import run_24h_cleanup
 from .services.storage import ensure_storage
 
@@ -152,6 +152,8 @@ app.include_router(styles.router)
 app.include_router(photos.router)
 app.include_router(generations.router)
 app.include_router(files.router)
+app.include_router(suggestions.router)
+app.include_router(looks.router)
 
 @app.get("/health")
 def healthcheck():

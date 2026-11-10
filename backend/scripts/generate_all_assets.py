@@ -353,3 +353,4 @@ if __name__ == "__main__":
     generate_styled_result("assets/portraits/model_2.jpg", "H07", "B06", "assets/portraits/model_2_styled_H07_B06.jpg")
     generate_styled_result("assets/portraits/model_3.jpg", "H25", "B03", "assets/portraits/model_3_styled_H25_B03.jpg")
     print("✓ Sample styled look results generated.")
+

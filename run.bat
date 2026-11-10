@@ -19,3 +19,4 @@ if %errorlevel% equ 0 (
 
 echo [..] Starting Flutter app...
 flutter run %*
+

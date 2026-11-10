@@ -27,3 +27,4 @@ if ($portActive) {
 
 Write-Host "[..] Starting Flutter app..." -ForegroundColor Cyan
 flutter run $args
+

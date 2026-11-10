@@ -4,9 +4,14 @@ import 'screens/catalog_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'services/api_service.dart';
+import 'services/backend_launcher.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Automatically start Python backend if running on desktop and not already active
+  await BackendLauncher.ensureBackendRunning();
+
   final apiService = StyleMirrorApiService();
   runApp(StyleMirrorApp(apiService: apiService));
 }

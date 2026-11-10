@@ -47,3 +47,39 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+tasks.register("autoStartBackend") {
+    doLast {
+        try {
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress("127.0.0.1", 8000), 400)
+            socket.close()
+            logger.lifecycle("✓ StyleMirror FastAPI backend is already active on port 8000")
+        } catch (e: Exception) {
+            logger.lifecycle("⚡ Auto-starting StyleMirror Python backend on port 8000...")
+            val rootDir = project.rootDir.parentFile
+            val backendDir = java.io.File(rootDir, "backend")
+            if (backendDir.exists()) {
+                val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+                val pb = if (isWindows) {
+                    ProcessBuilder("cmd.exe", "/c", "start", "/b", "python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000")
+                } else {
+                    ProcessBuilder("nohup", "python3", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "&")
+                }
+                pb.directory(backendDir)
+                pb.environment()["PYTHONPATH"] = backendDir.absolutePath
+                try {
+                    pb.start()
+                    logger.lifecycle("✓ StyleMirror backend process started automatically")
+                } catch (pe: Exception) {
+                    logger.warn("Could not auto-start python backend: ${pe.message}")
+                }
+            }
+        }
+    }
+}
+
+tasks.matching { it.name.startsWith("assemble") || it.name == "preBuild" }.configureEach {
+    dependsOn("autoStartBackend")
+}
+

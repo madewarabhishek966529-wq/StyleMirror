@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "StyleMirror (App + Backend)",
+      "request": "launch",
+      "type": "dart",
+      "preLaunchTask": "start-backend"
+    },
+    {
+      "name": "StyleMirror (App Only)",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}

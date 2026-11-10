@@ -84,37 +84,48 @@ stylemirror/
 
 ---
 
-## 🛠️ Quickstart Guide
+## 🛠️ Quickstart Guide (Zero-Configuration All-In-One Execution)
 
-### 1. Run Backend Service (Python venv, No Docker)
+You **do not need to start the backend separately**! StyleMirror includes automated full-stack coordination across all run modes:
+
+### Option 1: 1-Click All-in-One Runner (Recommended)
+
+Simply run `run.bat` or `run.ps1`:
+```bash
+# Windows Command Prompt
+run.bat
+
+# Or PowerShell
+.\run.ps1
+```
+*Automatically checks port 8000, starts the FastAPI backend in the background if needed, and launches the Flutter application.*
+
+### Option 2: Run via VS Code / IDE (Press `F5`)
+Open the project in VS Code / Antigravity IDE, select **"StyleMirror (App + Backend)"**, and press **F5**.
+The configured `preLaunchTask` in `.vscode/launch.json` automatically boots the backend and attaches the Flutter debugger.
+
+### Option 3: Standard `flutter run`
+```bash
+# Launch on Windows Desktop, Android, iOS, or macOS:
+flutter run
+```
+- **On Desktop (Windows/macOS/Linux)**: [`BackendLauncher`](lib/services/backend_launcher.dart) in `main.dart` detects if port 8000 is open; if not, it automatically spawns the Python backend in the background.
+- **On Android**: The host Gradle build task in `android/app/build.gradle.kts` automatically verifies and spawns the Python backend on the host machine before launching the emulator/device, accessible via `http://10.0.2.2:8000`.
+
+---
+
+### Manual Backend Launch (Optional)
+
+If you ever wish to inspect FastAPI interactive documentation (`/docs`) or run backend tests directly:
 
 ```bash
 cd backend
-
-# Install dependencies
 python -m pip install -r requirements.txt
-
-# Seed all 50 styles into SQLite database
 python scripts/seed_styles.py
-
-# Start FastAPI server
-uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --port 8000
 ```
-- API Docs: `http://localhost:8000/docs`
+- Interactive API Docs: `http://localhost:8000/docs`
 - Healthcheck: `http://localhost:8000/health`
-
-### 2. Run Flutter Mobile App
-
-```bash
-# Analyze code
-flutter analyze
-
-# Run Flutter tests
-flutter test
-
-# Launch on connected device, emulator, or desktop
-flutter run
-```
 
 ---
 

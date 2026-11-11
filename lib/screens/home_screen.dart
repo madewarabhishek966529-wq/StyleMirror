@@ -244,22 +244,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (finishedJob.resultBase64 != null) {
       styledBytes = base64Decode(finishedJob.resultBase64!);
     } else {
-      // Pick best matching styled variant for the chosen hairstyle
-      String styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled.jpg';
+      // Pick best matching real photographic styled preview
+      String styledAsset = 'assets/portraits/transform_after_$_selectedModelIndex.jpg';
       final hId = _selectedHair?.id;
       if (hId == 'H03' || hId == 'H16' || hId == 'H19') {
-        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_crop.jpg';
-      } else if (hId == 'H07' || hId == 'H06' || hId == 'H09') {
-        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_pompadour.jpg';
-      } else if (hId != null && int.tryParse(hId.replaceAll(RegExp(r'[^0-9]'), '')) != null &&
-          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) >= 11 &&
-          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) <= 15) {
-        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_fade.jpg';
-      } else if (hId == 'H21' || hId == 'H22') {
-        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_mullet.jpg';
-      } else if (hId != null && int.tryParse(hId.replaceAll(RegExp(r'[^0-9]'), '')) != null &&
-          int.parse(hId.replaceAll(RegExp(r'[^0-9]'), '')) >= 23) {
-        styledAsset = 'assets/portraits/model_${_selectedModelIndex}_styled_long.jpg';
+        styledAsset = 'assets/portraits/transform_after_2.jpg';
+      } else if (hId == 'H12' || hId == 'H07' || hId == 'H06' || hId == 'H09') {
+        styledAsset = 'assets/portraits/transform_after_3.jpg';
+      } else {
+        styledAsset = 'assets/portraits/transform_after_1.jpg';
       }
 
       try {
@@ -267,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         styledBytes = data.buffer.asUint8List();
       } catch (_) {
         try {
-          final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_1_styled.jpg');
+          final data = await DefaultAssetBundle.of(context).load('assets/portraits/transform_after_1.jpg');
           styledBytes = data.buffer.asUint8List();
         } catch (_) {
           styledBytes = _uploadedPhotoBytes;
@@ -419,6 +412,122 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             'StyleMirror transforms only your hair and beard, keeping your identity 100% authentic.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 20),
+
+          // 1. Live Transformation Showcase (First thing to see transform in action)
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.borderHighlight),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withOpacity(0.15),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.auto_awesome, color: AppTheme.primaryLight, size: 16),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Instant Transformation Preview',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            Text(
+                              'Drag slider to see real AI hair & beard styling',
+                              style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ClipRRect(
+                  child: BeforeAfterSlider(
+                    height: 290,
+                    beforeWidget: Image.asset(
+                      'assets/portraits/transform_before_$_activeDemoIndex.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppTheme.surfaceElevated,
+                        child: const Center(
+                          child: Icon(Icons.person, size: 48, color: AppTheme.textMuted),
+                        ),
+                      ),
+                    ),
+                    afterWidget: Image.asset(
+                      'assets/portraits/transform_after_$_activeDemoIndex.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppTheme.surfaceElevated,
+                        child: const Center(
+                          child: Icon(Icons.auto_awesome, size: 48, color: AppTheme.primaryLight),
+                        ),
+                      ),
+                    ),
+                    beforeLabel: 'BEFORE',
+                    afterLabel: _demoLabels[_activeDemoIndex - 1],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      for (int i = 1; i <= 3; i++)
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(right: i < 3 ? 8 : 0),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _activeDemoIndex = i),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: _activeDemoIndex == i ? AppTheme.primary : AppTheme.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _activeDemoIndex == i ? AppTheme.primaryLight : AppTheme.border,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Look $i',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: _activeDemoIndex == i ? Colors.white : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -706,21 +815,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 20),
 
-          // Primary Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isValidating
-                  ? null
-                  : (_uploadedPhotoBytes != null
-                      ? () => setState(() => _currentStep = 1)
-                      : _onUploadTapped),
-              icon: Icon(_uploadedPhotoBytes != null ? Icons.arrow_forward : Icons.camera_alt),
-              label: Text(_uploadedPhotoBytes != null
-                  ? 'Continue to Style Selection (50 Looks)'
-                  : 'Capture / Choose Selfie'),
+          // Action Buttons
+          if (_uploadedPhotoBytes != null) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => setState(() => _currentStep = 1),
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('Continue to Style Selection (50 Looks)'),
+              ),
             ),
-          ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isValidating ? null : _onUploadTapped,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Capture / Choose Selfie'),
+              ),
+            ),
+          ] else ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isValidating ? null : _onUploadTapped,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Capture / Choose Selfie'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1101,14 +1224,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     : null),
             fallbackBefore: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset('assets/portraits/model_1.jpg', fit: BoxFit.cover),
+              child: Image.asset('assets/portraits/transform_before_1.jpg', fit: BoxFit.cover),
             ),
             fallbackAfter: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset('assets/portraits/model_1_styled.jpg', fit: BoxFit.cover),
+              child: Image.asset('assets/portraits/transform_after_1.jpg', fit: BoxFit.cover),
             ),
             beforeLabel: 'ORIGINAL SELFIE',
-            afterLabel: '${_selectedHair?.name ?? ''} ${_selectedBeard?.name ?? ''}'.trim(),
+            afterLabel: '${_selectedHair?.name ?? 'Natural Hair'} + ${_selectedBeard?.name ?? 'Natural Beard'}'
+                .trim(),
           ),
           const SizedBox(height: 16),
 

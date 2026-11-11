@@ -58,12 +58,12 @@ class DashboardScreen extends StatelessWidget {
             tooltip: 'Analyze Face',
             onPressed: () => FaceAnalysisDialog.show(context, onProfileUpdated: onProfileUpdated),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
+          const Padding(
+            padding: EdgeInsets.only(right: 12.0),
             child: CircleAvatar(
               radius: 16,
               backgroundColor: AppTheme.cardBackground,
-              backgroundImage: const AssetImage('assets/portraits/model_1.jpg'),
+              backgroundImage: AssetImage('assets/portraits/model_1.jpg'),
             ),
           ),
         ],
@@ -196,11 +196,15 @@ class DashboardScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/portraits/model_1.jpg',
+                child: SizedBox(
                   width: 58,
                   height: 58,
-                  fit: BoxFit.cover,
+                  child: Image.asset(
+                    'assets/portraits/model_1.jpg',
+                    width: 58,
+                    height: 58,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -283,11 +287,15 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(width: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
-              'assets/portraits/transform_after_1.jpg',
+            child: SizedBox(
               width: 90,
               height: 110,
-              fit: BoxFit.cover,
+              child: Image.asset(
+                'assets/portraits/transform_after_1.jpg',
+                width: 90,
+                height: 110,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ],
@@ -393,7 +401,11 @@ class DashboardScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset('assets/portraits/transform_after_2.jpg', width: 48, height: 48, fit: BoxFit.cover),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Image.asset('assets/portraits/transform_after_2.jpg', width: 48, height: 48, fit: BoxFit.cover),
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(

@@ -39,6 +39,7 @@ class AppTheme {
   static const Color warning = Color(0xFFFB923C);
 
   static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFFA1A1AA);
   static const Color textMuted = Color(0xFFA1A1AA);
 
   // --- DARK THEME (PRIMARY) ---

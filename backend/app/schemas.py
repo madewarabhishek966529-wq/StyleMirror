@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 
 class StyleResponse(BaseModel):
@@ -11,14 +11,15 @@ class StyleResponse(BaseModel):
     sort_order: int = 0
     is_active: bool = True
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PhotoUploadResponse(BaseModel):
     photo_id: str
     ok: bool
     issues: List[str] = Field(default_factory=list)
     expires_in: int = 86400
+    face_count: Optional[int] = 1
+    meta: Optional[Dict[str, Any]] = None
 
 class GenerationCreateRequest(BaseModel):
     photo_id: str
@@ -38,8 +39,7 @@ class GenerationResponse(BaseModel):
     latency_ms: Optional[int] = None
     error: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ErrorDetail(BaseModel):
     code: str

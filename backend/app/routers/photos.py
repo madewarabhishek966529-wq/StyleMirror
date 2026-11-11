@@ -32,6 +32,8 @@ async def upload_photo(
             photo_id="",
             ok=False,
             issues=issues,
+            face_count=meta.get("face_count", 0),
+            meta=meta,
         )
 
     # Compute SHA256
@@ -58,6 +60,8 @@ async def upload_photo(
         ok=True,
         issues=[],
         expires_in=86400,
+        face_count=meta.get("face_count", 1),
+        meta=meta,
     )
 
 @router.delete("/{photo_id}")

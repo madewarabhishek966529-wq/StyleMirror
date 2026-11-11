@@ -50,15 +50,23 @@ def validate_face_image(image_bytes: bytes) -> Tuple[bool, List[str], Dict[str, 
                 meta["face_count"] = 1
                 return True, [], meta
 
-        # 4. Face Detection (OpenCV Haar Cascade as robust default)
+        # 4. Face Detection (OpenCV Haar Cascade with adaptive sizing & spurious artifact filtering)
         cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         face_cascade = cv2.CascadeClassifier(cascade_path)
-        faces = face_cascade.detectMultiScale(
+        min_sz = max(70, int(min(w, h) * 0.16))
+        raw_faces = face_cascade.detectMultiScale(
             gray,
             scaleFactor=1.1,
-            minNeighbors=4,
-            minSize=(60, 60),
+            minNeighbors=5,
+            minSize=(min_sz, min_sz),
         )
+
+        # Filter out tiny spurious candidate detections if a dominant face exists
+        if len(raw_faces) > 1:
+            max_area = max(fw * fh for (_, _, fw, fh) in raw_faces)
+            faces = [f for f in raw_faces if (f[2] * f[3]) >= max_area * 0.35]
+        else:
+            faces = list(raw_faces)
 
         meta["face_count"] = len(faces)
 

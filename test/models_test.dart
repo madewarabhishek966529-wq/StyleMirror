@@ -40,8 +40,10 @@ void main() {
 
       expect(fromJson.photoId, 'photo_abc123');
       expect(fromJson.ok, true);
+      expect(fromJson.faceCount, 1);
 
       expect(PhotoUploadResponse.formatIssue('NO_FACE').contains('No face detected'), true);
+      expect(PhotoUploadResponse.formatIssue('MULTIPLE_FACES').contains('Multiple faces'), true);
       expect(PhotoUploadResponse.formatIssue('TOO_BLURRY').contains('blurry'), true);
       expect(PhotoUploadResponse.formatIssue('FACE_NOT_FRONTAL').contains('Look straight ahead'), true);
     });

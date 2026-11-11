@@ -347,3 +347,4 @@ def transform_portrait(
     buf = io.BytesIO()
     out_pil.save(buf, format="JPEG", quality=95)
     return buf.getvalue()
+

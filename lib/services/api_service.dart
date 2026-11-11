@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import '../core/constants/api_constants.dart';
 import '../models/generation_model.dart';
 import '../models/photo_model.dart';
@@ -14,10 +15,12 @@ class StyleMirrorApiService {
   final String baseUrl;
   bool useMockFallback;
 
-  StyleMirrorApiService({
-    String? baseUrl,
-    this.useMockFallback = true,
-  }) : baseUrl = baseUrl ?? (Platform.isAndroid ? ApiConstants.androidEmulatorBaseUrl : ApiConstants.defaultBaseUrl);
+  StyleMirrorApiService({String? baseUrl, this.useMockFallback = true})
+    : baseUrl =
+          baseUrl ??
+          (Platform.isAndroid
+              ? ApiConstants.androidEmulatorBaseUrl
+              : ApiConstants.defaultBaseUrl);
 
   final Map<String, GenerationJob> _mockJobs = {};
   final Set<String> _mockDeletedPhotos = {};
@@ -25,16 +28,22 @@ class StyleMirrorApiService {
   /// Fetch styles from backend or local catalog
   Future<List<StyleModel>> fetchStyles({String? type}) async {
     try {
-      final uri = Uri.parse('$baseUrl${ApiConstants.stylesEndpoint}${type != null ? '?type=$type' : ''}');
+      final uri = Uri.parse(
+        '$baseUrl${ApiConstants.stylesEndpoint}${type != null ? '?type=$type' : ''}',
+      );
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 4);
       final request = await client.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 4));
+      final response = await request.close().timeout(
+        const Duration(seconds: 4),
+      );
 
       if (response.statusCode == 200) {
         final body = await response.transform(utf8.decoder).join();
         final jsonList = jsonDecode(body) as List<dynamic>;
-        return jsonList.map((e) => StyleModel.fromJson(e as Map<String, dynamic>)).toList();
+        return jsonList
+            .map((e) => StyleModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {
       // Backend unreachable or offline - fall back to full embedded 50 styles catalog
@@ -68,8 +77,12 @@ class StyleMirrorApiService {
       client.connectionTimeout = const Duration(seconds: 5);
       final request = await client.postUrl(uri);
 
-      final boundary = '----StyleMirrorBoundary${DateTime.now().millisecondsSinceEpoch}';
-      request.headers.set(HttpHeaders.contentTypeHeader, 'multipart/form-data; boundary=$boundary');
+      final boundary =
+          '----StyleMirrorBoundary${DateTime.now().millisecondsSinceEpoch}';
+      request.headers.set(
+        HttpHeaders.contentTypeHeader,
+        'multipart/form-data; boundary=$boundary',
+      );
 
       final boundaryBytes = utf8.encode('--$boundary\r\n');
       final headerBytes = utf8.encode(
@@ -83,12 +96,16 @@ class StyleMirrorApiService {
       request.add(bytes);
       request.add(footerBytes);
 
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode == 200) {
         final responseBody = await response.transform(utf8.decoder).join();
         final json = jsonDecode(responseBody) as Map<String, dynamic>;
         final res = PhotoUploadResponse.fromJson(json);
-        if (!res.ok && useMockFallback && (filename.contains('test') || filename.contains('dummy'))) {
+        if (!res.ok &&
+            useMockFallback &&
+            (filename.contains('test') || filename.contains('dummy'))) {
           // If in test mode with mock fallback, return successful mock upload
           return PhotoUploadResponse(
             photoId: 'photo_mock_${DateTime.now().millisecondsSinceEpoch}',
@@ -140,7 +157,9 @@ class StyleMirrorApiService {
       });
 
       request.add(utf8.encode(payload));
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final responseBody = await response.transform(utf8.decoder).join();
         final json = jsonDecode(responseBody) as Map<String, dynamic>;
@@ -176,11 +195,15 @@ class StyleMirrorApiService {
   /// Poll status of a generation job
   Future<GenerationJob> getGeneration(String jobId) async {
     try {
-      final uri = Uri.parse('$baseUrl${ApiConstants.generationsEndpoint}/$jobId');
+      final uri = Uri.parse(
+        '$baseUrl${ApiConstants.generationsEndpoint}/$jobId',
+      );
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 4);
       final request = await client.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 6));
+      final response = await request.close().timeout(
+        const Duration(seconds: 6),
+      );
 
       if (response.statusCode == 200) {
         final body = await response.transform(utf8.decoder).join();
@@ -202,7 +225,8 @@ class StyleMirrorApiService {
           beardStyleId: job.beardStyleId,
           view: job.view,
           status: GenerationStatus.done,
-          resultUrl: '$baseUrl/v1/files/photos/${job.photoId}/out/${job.id}.jpg',
+          resultUrl:
+              '$baseUrl/v1/files/photos/${job.photoId}/out/${job.id}.jpg',
           identityScore: 0.94,
           latencyMs: elapsed,
           createdAt: job.createdAt,
@@ -241,7 +265,9 @@ class StyleMirrorApiService {
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 4);
       final request = await client.deleteUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 4));
+      final response = await request.close().timeout(
+        const Duration(seconds: 4),
+      );
       if (response.statusCode == 200 || response.statusCode == 204) return true;
       if (useMockFallback) return true;
       return false;
@@ -250,4 +276,3 @@ class StyleMirrorApiService {
     }
   }
 }
-

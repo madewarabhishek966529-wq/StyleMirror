@@ -4,6 +4,7 @@ class PhotoUploadResponse {
   final bool ok;
   final List<String> issues;
   final int expiresIn;
+  final int faceCount;
   final String? storagePath;
   final String? previewBase64;
 
@@ -12,6 +13,7 @@ class PhotoUploadResponse {
     required this.ok,
     this.issues = const [],
     this.expiresIn = 86400,
+    this.faceCount = 1,
     this.storagePath,
     this.previewBase64,
   });
@@ -22,6 +24,7 @@ class PhotoUploadResponse {
       ok: json['ok'] as bool? ?? false,
       issues: (json['issues'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       expiresIn: (json['expires_in'] as num?)?.toInt() ?? 86400,
+      faceCount: (json['face_count'] as num?)?.toInt() ?? (json['ok'] == true ? 1 : 0),
       storagePath: json['storage_path'] as String?,
       previewBase64: json['preview_base64'] as String?,
     );
@@ -33,6 +36,7 @@ class PhotoUploadResponse {
       'ok': ok,
       'issues': issues,
       'expires_in': expiresIn,
+      'face_count': faceCount,
       if (storagePath != null) 'storage_path': storagePath,
       if (previewBase64 != null) 'preview_base64': previewBase64,
     };

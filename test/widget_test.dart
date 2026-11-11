@@ -62,4 +62,45 @@ void main() {
     expect(find.text('BEFORE'), findsOneWidget);
     expect(find.text('AFTER'), findsOneWidget);
   });
+
+  testWidgets('CatalogScreen filters by hair and beard categories and shows details', (WidgetTester tester) async {
+    final apiService = StyleMirrorApiService(useMockFallback: true);
+
+    await tester.pumpWidget(StyleMirrorApp(apiService: apiService));
+    await tester.pumpAndSettle();
+
+    // Tap Catalog tab
+    await tester.tap(find.text('Catalog (50)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('All 50'), findsOneWidget);
+    expect(find.text('Hairstyles (25)'), findsOneWidget);
+    expect(find.text('Beard Styles (25)'), findsOneWidget);
+
+    // Switch to Hairstyles
+    await tester.tap(find.text('Hairstyles (25)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Short & Fade'), findsAtLeastNWidgets(1));
+
+    // Switch to Beard Styles
+    await tester.tap(find.text('Beard Styles (25)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Clean & Stubble'), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('PrivacyScreen renders zero training and automated purge commitments', (WidgetTester tester) async {
+    final apiService = StyleMirrorApiService(useMockFallback: true);
+
+    await tester.pumpWidget(StyleMirrorApp(apiService: apiService));
+    await tester.pumpAndSettle();
+
+    // Tap Privacy tab
+    await tester.tap(find.text('Privacy'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Privacy & Security'), findsOneWidget);
+    expect(find.text('Zero AI Model Training'), findsOneWidget);
+    expect(find.text('24-Hour Automated Purge'), findsOneWidget);
+    expect(find.text('Instant Manual Wipe'), findsOneWidget);
+  });
 }

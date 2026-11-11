@@ -189,6 +189,27 @@ class _CatalogScreenState extends State<CatalogScreen> {
             ),
           ),
 
+          // Category Chips when Hair or Beard is selected
+          if (_typeFilter != 'all')
+            SizedBox(
+              height: 42,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                children: [
+                  for (final cat in (_typeFilter == 'hair' ? StyleCatalogData.hairCategories : StyleCatalogData.beardCategories))
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ChoiceChip(
+                        label: Text(cat),
+                        selected: _categoryFilter == cat,
+                        onSelected: (_) => setState(() => _categoryFilter = cat),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
           // Grid
           Expanded(
             child: filtered.isEmpty

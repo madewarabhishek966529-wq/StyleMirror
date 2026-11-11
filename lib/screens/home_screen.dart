@@ -24,11 +24,25 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.apiService});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _currentStep = 0; // 0: Selfie & Detection, 1: Target & Style Selection, 2: Result
+
+  /// External style selection callback from Catalog or other deep links
+  void selectStyleFromExternal(StyleModel style) {
+    setState(() {
+      _currentStep = 1;
+      if (style.isHair) {
+        _styleTarget = 'hair';
+        _selectedHair = style;
+      } else {
+        _styleTarget = 'beard';
+        _selectedBeard = style;
+      }
+    });
+  }
 
   // Photo & Python Single-Face Detection State
   Uint8List? _uploadedPhotoBytes;

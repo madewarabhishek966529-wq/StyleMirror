@@ -43,13 +43,15 @@ class MainNavigationScaffold extends StatefulWidget {
 
 class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   int _currentIndex = 0;
+  final GlobalKey<HomeScreenState> _homeKey = GlobalKey<HomeScreenState>();
 
   @override
   Widget build(BuildContext context) {
     final screens = [
-      HomeScreen(apiService: widget.apiService),
+      HomeScreen(key: _homeKey, apiService: widget.apiService),
       CatalogScreen(
         onStyleSelected: (style) {
+          _homeKey.currentState?.selectStyleFromExternal(style);
           setState(() => _currentIndex = 0);
         },
       ),

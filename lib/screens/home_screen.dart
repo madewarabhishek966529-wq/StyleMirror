@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../core/theme/app_theme.dart';
 import '../data/style_catalog_data.dart';
 import '../models/generation_model.dart';
@@ -49,10 +50,33 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   double _generationProgress = 0.0;
   GenerationJob? _currentJob;
 
+  // Demo Transformation Showcase State
+  int _activeDemoIndex = 1;
+  final List<String> _demoLabels = [
+    'CREW CUT (H01) + STUBBLE',
+    'FRENCH CROP (H03) + SHORT BEARD',
+    'QUIFF (H12) + FULL BEARD (B05)',
+  ];
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadDefaultPortrait();
+  }
+
+  void _loadDefaultPortrait() async {
+    try {
+      final data = await rootBundle.load('assets/portraits/model_1.jpg');
+      final bytes = data.buffer.asUint8List();
+      if (mounted) {
+        setState(() {
+          _uploadedPhotoBytes = bytes;
+          _photoId = 'photo_preset_1';
+          _selectedModelIndex = 1;
+        });
+      }
+    } catch (_) {}
   }
 
   @override

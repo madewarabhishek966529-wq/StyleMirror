@@ -73,3 +73,4 @@ All target KPIs were met or exceeded.
 1. **Client-Side Caching**: Utilize Flutter `cached_network_image` with local disk LRU eviction for remote assets.
 2. **Reverse Proxy & CDN**: Place FastAPI behind Nginx or Cloudflare with Brotli/Gzip compression enabled.
 3. **Dedicated Worker Pool**: For cloud deployments with >1,000 concurrent active users, offload CPU-intensive OpenCV styling tasks to Celery or Redis Queue (RQ) background worker processes.
+

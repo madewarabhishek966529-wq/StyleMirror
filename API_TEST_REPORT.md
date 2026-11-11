@@ -118,3 +118,4 @@
 ## 3. Summary & Quality Sign-Off
 
 All endpoints conform strictly to `docs/05_API_SPEC.md`. Error formats use standard structured error details `{"error": {"code": "...", "message": "..."}}`.
+

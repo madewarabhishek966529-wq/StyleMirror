@@ -405,3 +405,4 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
     );
   }
 }
+

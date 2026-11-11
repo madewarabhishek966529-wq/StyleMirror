@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/theme/app_theme.dart';
 
 /// Screen 2: 3-step Onboarding Workflow
@@ -7,7 +8,10 @@ class OnboardingDialog extends StatefulWidget {
 
   const OnboardingDialog({super.key, required this.onFinished});
 
-  static Future<void> show(BuildContext context, {required VoidCallback onFinished}) {
+  static Future<void> show(
+    BuildContext context, {
+    required VoidCallback onFinished,
+  }) {
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -83,10 +87,21 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                       color: AppTheme.primaryAccent.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.content_cut, color: AppTheme.primaryAccent, size: 16),
+                    child: const Icon(
+                      Icons.content_cut,
+                      color: AppTheme.primaryAccent,
+                      size: 16,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('StyleMirror', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                  const Text(
+                    'StyleMirror',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
               TextButton(
@@ -94,7 +109,10 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                   Navigator.pop(context);
                   widget.onFinished();
                 },
-                child: const Text('Skip', style: TextStyle(color: AppTheme.secondaryText, fontSize: 13)),
+                child: const Text(
+                  'Skip',
+                  style: TextStyle(color: AppTheme.secondaryText, fontSize: 13),
+                ),
               ),
             ],
           ),
@@ -112,7 +130,13 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                   Image.asset(
                     page['image'] as String,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.face, size: 64, color: AppTheme.secondaryText)),
+                    errorBuilder: (_, __, ___) => const Center(
+                      child: Icon(
+                        Icons.face,
+                        size: 64,
+                        color: AppTheme.secondaryText,
+                      ),
+                    ),
                   ),
                   DecoratedBox(
                     decoration: BoxDecoration(
@@ -130,14 +154,21 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                     bottom: 12,
                     left: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryAccent,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         page['tagline'] as String,
-                        style: const TextStyle(color: AppTheme.background, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: AppTheme.background,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -151,13 +182,21 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
           Text(
             page['title'] as String,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             page['description'] as String,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppTheme.secondaryText, height: 1.4),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.secondaryText,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -172,7 +211,9 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                   width: _currentIndex == i ? 24 : 8,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: _currentIndex == i ? AppTheme.primaryAccent : AppTheme.secondaryText.withOpacity(0.3),
+                    color: _currentIndex == i
+                        ? AppTheme.primaryAccent
+                        : AppTheme.secondaryText.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -192,7 +233,9 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                   widget.onFinished();
                 }
               },
-              child: Text(_currentIndex < _pages.length - 1 ? 'Next' : 'Get Started'),
+              child: Text(
+                _currentIndex < _pages.length - 1 ? 'Next' : 'Get Started',
+              ),
             ),
           ),
         ],

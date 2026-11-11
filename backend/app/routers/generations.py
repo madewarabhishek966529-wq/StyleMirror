@@ -46,7 +46,12 @@ def process_generation_job(generation_id: str, db_session_factory):
 
         user_bytes = get_file_bytes(photo.storage_path) or b""
         start_t = time.time()
-        styled_bytes = mock_provider.edit_sync(user_bytes, prompt)
+        styled_bytes = mock_provider.edit_sync(
+            user_bytes,
+            prompt,
+            hair_style_id=job.hair_style_id,
+            beard_style_id=job.beard_style_id,
+        )
         latency = int((time.time() - start_t) * 1000)
 
         # Save output

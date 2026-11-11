@@ -8,7 +8,20 @@ class MockImageProvider(ImageProvider):
         user_image: bytes,
         prompt: str,
         reference_images: list[bytes] | None = None,
+        hair_style_id: str | None = None,
+        beard_style_id: str | None = None,
     ) -> bytes:
+        if hair_style_id or beard_style_id:
+            try:
+                from ..services.stylist import transform_portrait
+                return transform_portrait(
+                    user_image,
+                    hair_style_id=hair_style_id,
+                    beard_style_id=beard_style_id,
+                )
+            except Exception:
+                pass
+
         try:
             img = Image.open(io.BytesIO(user_image)).convert("RGB")
         except Exception:

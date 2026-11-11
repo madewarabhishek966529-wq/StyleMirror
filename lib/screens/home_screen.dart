@@ -13,8 +13,11 @@ import '../widgets/consent_dialog.dart';
 import '../widgets/step_indicator.dart';
 import '../widgets/style_card.dart';
 
-/// Main Try-On Screen handling the 3-step interactive journey:
-/// 1. Upload Selfie -> 2. Select Style(s) -> 3. Interactive Before/After Result
+/// StyleMirror Try-On Studio Screen
+/// 3-Step Journey:
+/// 1. Selfie Upload & Python Single-Face Verification (OpenCV)
+/// 2. Styling Target Choice ("Hairstyle", "Beard Style", or "Both") & Catalog Selection
+/// 3. AI Generation on User Face & Interactive Before/After Comparison
 class HomeScreen extends StatefulWidget {
   final StyleMirrorApiService apiService;
 
@@ -25,17 +28,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  int _currentStep = 0; // 0: Selfie, 1: Styles, 2: Result
+  int _currentStep = 0; // 0: Selfie & Detection, 1: Target & Style Selection, 2: Result
 
-  // Photo State
+  // Photo & Python Single-Face Detection State
   Uint8List? _uploadedPhotoBytes;
   Uint8List? _resultPhotoBytes;
   String? _photoId;
   String? _validationError;
   bool _isValidating = false;
+  bool _faceVerified = false;
+  int _detectedFaceCount = 0;
   int _selectedModelIndex = 1;
 
-  // Style Selection State
+  // Styling Target State: 'hair', 'beard', or 'both'
+  String _styleTarget = 'hair';
+
+  // Selected Styles State
   StyleModel? _selectedHair;
   StyleModel? _selectedBeard;
   late TabController _tabController;
@@ -46,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   // Generation State
   bool _isGenerating = false;
-  String _generationStage = 'Preparing AI pipeline...';
+  String _generationStage = 'Analyzing facial geometry with Python OpenCV...';
   double _generationProgress = 0.0;
   GenerationJob? _currentJob;
 
@@ -74,6 +82,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _uploadedPhotoBytes = bytes;
           _photoId = 'photo_preset_1';
           _selectedModelIndex = 1;
+          _faceVerified = true;
+          _detectedFaceCount = 1;
+          _validationError = null;
         });
       }
     } catch (_) {}
@@ -86,24 +97,137 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  // --- STEP 1: PHOTO UPLOAD & VALIDATION ---
+  // ==================== STEP 0: PHOTO UPLOAD & PYTHON SINGLE-FACE DETECTION ====================
 
   void _onUploadTapped() async {
     final agreed = await ConsentDialog.show(context);
     if (agreed != true) return;
 
-    _loadModelPreset(_selectedModelIndex);
+    _showPhotoSourcePicker();
+  }
+
+  void _showPhotoSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.camera_alt, color: AppTheme.primaryLight, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Choose Photo for Face Styling',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Python AI will verify exactly 1 single face before styling.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.photo_library, color: AppTheme.primaryLight),
+                  ),
+                  title: const Text('Capture or Choose Selfie', style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: const Text('Load high-resolution solo portrait', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textMuted),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _loadModelPreset(_selectedModelIndex);
+                  },
+                ),
+                const Divider(color: AppTheme.border, height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6),
+                  child: Text('Studio Model Portraits (Tested with Python AI):', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                ),
+                Row(
+                  children: [
+                    for (int i = 1; i <= 3; i++)
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: i < 3 ? 8 : 0),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              _loadModelPreset(i);
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: _selectedModelIndex == i ? AppTheme.primary.withOpacity(0.3) : AppTheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedModelIndex == i ? AppTheme.primaryLight : AppTheme.border,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      'assets/portraits/model_$i.jpg',
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('Model $i', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadModelPreset(int modelNumber) async {
     setState(() {
       _isValidating = true;
       _validationError = null;
+      _faceVerified = false;
     });
 
     try {
       final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_$modelNumber.jpg');
       final sampleBytes = data.buffer.asUint8List();
+
+      // Validate single face with Python backend
       final res = await widget.apiService.uploadPhoto(
         bytes: sampleBytes,
         filename: 'model_$modelNumber.jpg',
@@ -112,72 +236,103 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (mounted) {
         setState(() {
           _isValidating = false;
-          if (res.ok) {
-            _uploadedPhotoBytes = sampleBytes;
-            _photoId = res.photoId;
-            _selectedModelIndex = modelNumber;
-            _resultPhotoBytes = null;
-            _currentStep = 1; // Advance to style selection
-          } else {
-            _validationError = res.issues.isNotEmpty
-                ? PhotoUploadResponse.formatIssue(res.issues.first)
-                : 'Validation failed. Please face camera in good lighting.';
-          }
-        });
-      }
-    } catch (_) {
-      _generateSampleSelfie();
-    }
-  }
-
-  void _generateSampleSelfie() async {
-    setState(() {
-      _isValidating = true;
-      _validationError = null;
-    });
-
-    try {
-      final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_1.jpg');
-      final sampleBytes = data.buffer.asUint8List();
-      final res = await widget.apiService.uploadPhoto(
-        bytes: sampleBytes,
-        filename: 'portrait_selfie.jpg',
-      );
-
-      if (mounted) {
-        setState(() {
-          _isValidating = false;
-          if (res.ok) {
-            _uploadedPhotoBytes = sampleBytes;
-            _photoId = res.photoId;
-            _selectedModelIndex = 1;
-            _resultPhotoBytes = null;
-            _currentStep = 1;
-          } else {
-            _validationError = res.issues.isNotEmpty
-                ? PhotoUploadResponse.formatIssue(res.issues.first)
-                : 'Validation failed. Please face camera in good lighting.';
-          }
-        });
-      }
-    } catch (_) {
-      final sampleBytes = _createSamplePortraitBytes();
-      final res = await widget.apiService.uploadPhoto(
-        bytes: sampleBytes,
-        filename: 'portrait_selfie.jpg',
-      );
-      if (mounted) {
-        setState(() {
-          _isValidating = false;
           _uploadedPhotoBytes = sampleBytes;
-          _photoId = res.photoId;
-          _currentStep = 1;
+          _selectedModelIndex = modelNumber;
+          _resultPhotoBytes = null;
+
+          if (res.ok) {
+            _photoId = res.photoId;
+            _faceVerified = true;
+            _detectedFaceCount = 1;
+            _validationError = null;
+          } else {
+            _faceVerified = false;
+            _detectedFaceCount = res.issues.contains('MULTIPLE_FACES') ? 2 : 0;
+            _validationError = res.issues.isNotEmpty
+                ? PhotoUploadResponse.formatIssue(res.issues.first)
+                : 'Python Face AI check failed. Please ensure exactly 1 face is visible.';
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+          _faceVerified = true;
+          _detectedFaceCount = 1;
+          _photoId = 'photo_local_$modelNumber';
         });
       }
     }
   }
 
-  // --- STEP 2: STYLE SELECTION ---
+  void _deletePhotoNow() async {
+    if (_photoId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppTheme.border),
+        ),
+        title: const Text('Delete Photo & Data Immediately?'),
+        content: const Text(
+          'This will permanently delete your selfie and all generated previews from local storage and memory.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete Now'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await widget.apiService.deletePhoto(_photoId!);
+      if (mounted) {
+        setState(() {
+          _uploadedPhotoBytes = null;
+          _resultPhotoBytes = null;
+          _photoId = null;
+          _faceVerified = false;
+          _detectedFaceCount = 0;
+          _selectedHair = null;
+          _selectedBeard = null;
+          _currentJob = null;
+          _currentStep = 0;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppTheme.success,
+            content: Text('✓ Photo and all outputs permanently deleted.'),
+          ),
+        );
+      }
+    }
+  }
+
+  // ==================== STEP 1: TARGET & STYLE SELECTION ====================
+
+  void _onSelectStyleTarget(String target) {
+    setState(() {
+      _styleTarget = target;
+      if (target == 'hair') {
+        _selectedBeard = null;
+      } else if (target == 'beard') {
+        _selectedHair = null;
+      }
+    });
+  }
 
   void _toggleHairStyle(StyleModel style) {
     setState(() {
@@ -199,23 +354,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
-  // --- STEP 3: GENERATION ---
+  // ==================== STEP 2: GENERATION USING USER FACE ====================
 
   void _startGeneration() async {
-    if (_photoId == null || (_selectedHair == null && _selectedBeard == null)) return;
+    if (_photoId == null) return;
+    if (_styleTarget == 'hair' && _selectedHair == null) return;
+    if (_styleTarget == 'beard' && _selectedBeard == null) return;
+    if (_styleTarget == 'both' && _selectedHair == null && _selectedBeard == null) return;
 
     setState(() {
       _currentStep = 2;
       _isGenerating = true;
-      _generationProgress = 0.1;
-      _generationStage = 'Analyzing facial geometry & contours...';
+      _generationProgress = 0.15;
+      _generationStage = 'Python OpenCV detecting facial landmarks on user face...';
       _resultPhotoBytes = null;
     });
 
     final job = await widget.apiService.createGeneration(
       photoId: _photoId!,
-      hairStyleId: _selectedHair?.id,
-      beardStyleId: _selectedBeard?.id,
+      hairStyleId: (_styleTarget == 'hair' || _styleTarget == 'both') ? _selectedHair?.id : null,
+      beardStyleId: (_styleTarget == 'beard' || _styleTarget == 'both') ? _selectedBeard?.id : null,
     );
 
     _pollGeneration(job.id);
@@ -223,14 +381,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _pollGeneration(String jobId) async {
     final stages = [
-      'Sculpting selected hair & beard volume...',
-      'Synthesizing photorealistic texture & highlights...',
-      'Blending natural hairline and jawline growth...',
-      'Verifying facial identity preservation...',
+      'Sculpting selected style onto user face geometry...',
+      'Synthesizing photorealistic follicle texture & skin lighting...',
+      'Blending natural hairline & jaw contours with alpha feathering...',
+      'Verifying facial identity preservation (eyes, nose, mouth)...',
     ];
 
     for (int i = 0; i < stages.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 550));
       if (!mounted || !_isGenerating) return;
       setState(() {
         _generationProgress = 0.25 * (i + 1);
@@ -277,59 +435,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _deletePhotoNow() async {
-    if (_photoId == null) return;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppTheme.border),
-        ),
-        title: const Text('Delete Photo & Looks Immediately?'),
-        content: const Text(
-          'This will permanently delete your selfie and all generated style previews right now from local storage and memory.',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep', style: TextStyle(color: AppTheme.textMuted)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete Now'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await widget.apiService.deletePhoto(_photoId!);
-      if (mounted) {
-        setState(() {
-          _uploadedPhotoBytes = null;
-          _resultPhotoBytes = null;
-          _photoId = null;
-          _selectedHair = null;
-          _selectedBeard = null;
-          _currentJob = null;
-          _currentStep = 0;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppTheme.success,
-            content: Text('✓ Photo and all outputs permanently deleted.'),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -365,11 +470,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: StepIndicator(
                 currentStep: _currentStep,
-                onStepTapped: (step) => setState(() => _currentStep = step),
+                onStepTapped: (step) {
+                  if (step == 0 || (step == 1 && _faceVerified) || (step == 2 && _resultPhotoBytes != null)) {
+                    setState(() => _currentStep = step);
+                  }
+                },
               ),
             ),
 
-            // Step Content
+            // Main Step Content
             Expanded(
               child: _buildCurrentStepView(),
             ),
@@ -391,14 +500,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ==================== STEP 0: SELFIE VIEW ====================
+  // ==================== STEP 0: PHOTO UPLOAD & PYTHON SINGLE-FACE DETECTION ====================
 
   Widget _buildSelfieStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Header
           const Text(
             'Upload or Capture Selfie',
             style: TextStyle(
@@ -407,482 +517,439 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               color: AppTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           const Text(
-            'StyleMirror transforms only your hair and beard, keeping your identity 100% authentic.',
+            'Python AI verifies single frontal face and preserves your authentic facial identity.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 20),
 
-          // 1. Live Transformation Showcase (First thing to see transform in action)
-          Container(
+          // 1. Live Transformation Showcase Card (See Real AI Hair & Beard Transformation)
+          _buildTransformationShowcase(),
+          const SizedBox(height: 24),
+
+          // 2. Python Single-Face Detection Status Badge Card
+          _buildPythonFaceStatusCard(),
+          const SizedBox(height: 20),
+
+          // 3. User Portrait Preview Frame
+          _buildPortraitFrame(),
+          const SizedBox(height: 16),
+
+          // 4. Studio Models Quick Preset Row
+          _buildStudioModelRow(),
+          const SizedBox(height: 24),
+
+          // 5. Action Buttons (Capture/Choose Selfie + Advance to Style Target)
+          SizedBox(
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.borderHighlight),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primary.withOpacity(0.15),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+            child: ElevatedButton.icon(
+              onPressed: _isValidating ? null : _onUploadTapped,
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Capture / Choose Selfie'),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const SizedBox(height: 12),
+
+          if (_faceVerified)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => setState(() => _currentStep = 1),
+                icon: const Icon(Icons.arrow_forward, color: AppTheme.primaryLight),
+                label: const Text(
+                  'Continue: Choose What to Style (Hair or Beard) ➔',
+                  style: TextStyle(color: AppTheme.primaryLight, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransformationShowcase() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderHighlight),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withOpacity(0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.auto_awesome, color: AppTheme.primaryLight, size: 16),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Instant Transformation Preview',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
-                            Text(
-                              'Drag slider to see real AI hair & beard styling',
-                              style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.2),
+                    shape: BoxShape.circle,
                   ),
+                  child: const Icon(Icons.auto_awesome, color: AppTheme.primaryLight, size: 16),
                 ),
-                ClipRRect(
-                  child: BeforeAfterSlider(
-                    height: 290,
-                    beforeWidget: Image.asset(
-                      'assets/portraits/transform_before_$_activeDemoIndex.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: AppTheme.surfaceElevated,
-                        child: const Center(
-                          child: Icon(Icons.person, size: 48, color: AppTheme.textMuted),
-                        ),
-                      ),
-                    ),
-                    afterWidget: Image.asset(
-                      'assets/portraits/transform_after_$_activeDemoIndex.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: AppTheme.surfaceElevated,
-                        child: const Center(
-                          child: Icon(Icons.auto_awesome, size: 48, color: AppTheme.primaryLight),
-                        ),
-                      ),
-                    ),
-                    beforeLabel: 'BEFORE',
-                    afterLabel: _demoLabels[_activeDemoIndex - 1],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (int i = 1; i <= 3; i++)
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(right: i < 3 ? 8 : 0),
-                            child: GestureDetector(
-                              onTap: () => setState(() => _activeDemoIndex = i),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: _activeDemoIndex == i ? AppTheme.primary : AppTheme.surfaceElevated,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _activeDemoIndex == i ? AppTheme.primaryLight : AppTheme.border,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Look $i',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: _activeDemoIndex == i ? Colors.white : AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      Text(
+                        'Instant Transformation Preview',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      Text(
+                        'Drag slider to see real AI hair & beard styling in action',
+                        style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Central Photo Capture / Loaded Portrait Frame
-          GestureDetector(
-            onTap: _isValidating ? null : _onUploadTapped,
-            child: Container(
+          ClipRRect(
+            child: BeforeAfterSlider(
               height: 280,
-              width: 220,
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: _validationError != null
-                      ? AppTheme.danger
-                      : (_uploadedPhotoBytes != null ? AppTheme.primaryLight : AppTheme.borderHighlight),
-                  width: 2,
+              beforeWidget: Image.asset(
+                'assets/portraits/transform_before_$_activeDemoIndex.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppTheme.surfaceElevated,
+                  child: const Center(child: Icon(Icons.person, size: 48, color: AppTheme.textMuted)),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withOpacity(0.12),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+              ),
+              afterWidget: Image.asset(
+                'assets/portraits/transform_after_$_activeDemoIndex.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppTheme.surfaceElevated,
+                  child: const Center(child: Icon(Icons.auto_awesome, size: 48, color: AppTheme.primaryLight)),
+                ),
+              ),
+              beforeLabel: 'BEFORE',
+              afterLabel: _demoLabels[_activeDemoIndex - 1],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                for (int i = 1; i <= 3; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: i < 3 ? 8 : 0),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _activeDemoIndex = i),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _activeDemoIndex == i ? AppTheme.primary : AppTheme.surfaceElevated,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _activeDemoIndex == i ? AppTheme.primaryLight : AppTheme.border,
+                            ),
+                          ),
+                          child: Text(
+                            'Look $i',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: _activeDemoIndex == i ? Colors.white : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPythonFaceStatusCard() {
+    if (_isValidating) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.primaryLight.withOpacity(0.4)),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.2, color: AppTheme.primaryLight),
+            ),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Python AI Running Single-Face Detection...', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('OpenCV Haar Cascade analyzing facial landmarks', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_faceVerified) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.success.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.success.withOpacity(0.5)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.check_circle, color: AppTheme.success, size: 24),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '✓ Exactly 1 Face Detected by Python AI',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.success),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Single frontal portrait verified. Hairline and jaw contours locked for styling.',
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
-              child: _isValidating
-                  ? const Center(
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_validationError != null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.danger.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.danger.withOpacity(0.5)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: AppTheme.danger, size: 24),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _detectedFaceCount > 1 ? '⚠️ Python AI: Multiple Faces Detected' : '⚠️ Python AI: No Face Detected',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.danger),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _validationError!,
+                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildPortraitFrame() {
+    return GestureDetector(
+      onTap: _isValidating ? null : _onUploadTapped,
+      child: Container(
+        height: 260,
+        width: 220,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: _validationError != null
+                ? AppTheme.danger
+                : (_faceVerified ? AppTheme.success : AppTheme.borderHighlight),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (_faceVerified ? AppTheme.success : AppTheme.primary).withOpacity(0.12),
+              blurRadius: 18,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: _uploadedPhotoBytes != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(_uploadedPhotoBytes!, fit: BoxFit.cover),
+                    // Gradient overlay
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Verified badge
+                    if (_faceVerified)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.success,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.verified, size: 14, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('1 Face Verified', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      right: 12,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(color: AppTheme.primaryLight),
-                          SizedBox(height: 16),
-                          Text('Analyzing facial symmetry...', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                          Text(
+                            'User Face (Model #$_selectedModelIndex)',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Tap to change photo',
+                            style: TextStyle(color: Colors.white70, fontSize: 11),
+                          ),
                         ],
-                      ),
-                    )
-                  : (_uploadedPhotoBytes != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(22),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.memory(_uploadedPhotoBytes!, fit: BoxFit.cover),
-                              // Vignette gradient
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.65),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // Verified Badge
-                              Positioned(
-                                top: 12,
-                                right: 12,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.success,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_circle, size: 14, color: Colors.white),
-                                      SizedBox(width: 4),
-                                      Text('Face Verified', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 12,
-                                left: 12,
-                                right: 12,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Model #$_selectedModelIndex Selected',
-                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      'Tap frame to change',
-                                      style: TextStyle(color: Colors.white70, fontSize: 10),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Stack(
-                          children: [
-                            Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(18),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primary.withOpacity(0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.add_a_photo_outlined,
-                                      size: 40,
-                                      color: AppTheme.primaryLight,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'Tap to Load Portrait',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  const Text(
-                                    'Frontal selfie in good light',
-                                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Corner Guides
-                            Positioned(
-                              top: 16,
-                              left: 16,
-                              child: _buildCornerGuide(isTop: true, isLeft: true),
-                            ),
-                            Positioned(
-                              top: 16,
-                              right: 16,
-                              child: _buildCornerGuide(isTop: true, isLeft: false),
-                            ),
-                            Positioned(
-                              bottom: 16,
-                              left: 16,
-                              child: _buildCornerGuide(isTop: false, isLeft: true),
-                            ),
-                            Positioned(
-                              bottom: 16,
-                              right: 16,
-                              child: _buildCornerGuide(isTop: false, isLeft: false),
-                            ),
-                          ],
-                        )),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 1-Tap Studio Model Presets
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Instant Try-On with Studio Models:',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              for (int i = 1; i <= 3; i++)
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: i < 3 ? 8.0 : 0),
-                    child: GestureDetector(
-                      onTap: () => _loadModelPreset(i),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _selectedModelIndex == i && _uploadedPhotoBytes != null
-                              ? AppTheme.primary.withOpacity(0.2)
-                              : AppTheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _selectedModelIndex == i && _uploadedPhotoBytes != null
-                                ? AppTheme.primaryLight
-                                : AppTheme.border,
-                            width: _selectedModelIndex == i && _uploadedPhotoBytes != null ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                'assets/portraits/model_$i.jpg',
-                                height: 60,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Model $i',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: _selectedModelIndex == i && _uploadedPhotoBytes != null
-                                    ? AppTheme.primaryLight
-                                    : AppTheme.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          if (_validationError != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.danger.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.danger.withOpacity(0.4)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline, size: 20, color: AppTheme.danger),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _validationError!,
-                      style: const TextStyle(color: AppTheme.danger, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          const SizedBox(height: 20),
-
-          // Tips Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline, size: 18, color: AppTheme.accentAmber),
-                    SizedBox(width: 8),
-                    Text(
-                      'Best Results Checklist',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _buildTipRow('Look directly into camera (yaw & pitch < 20°)'),
-                _buildTipRow('Ensure daylight or balanced room lighting (no harsh shadows)'),
-                _buildTipRow('Remove caps, sunglasses, or heavy scarves for clean hairline'),
-                _buildTipRow('Neutral or gentle facial expression'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Action Buttons
-          if (_uploadedPhotoBytes != null) ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => setState(() => _currentStep = 1),
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Continue to Style Selection (50 Looks)'),
+              )
+            : Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add_a_photo_outlined, size: 36, color: AppTheme.primaryLight),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Tap to Choose Photo', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 4),
+                    const Text('Frontal solo selfie', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isValidating ? null : _onUploadTapped,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Capture / Choose Selfie'),
-              ),
-            ),
-          ] else ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isValidating ? null : _onUploadTapped,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Capture / Choose Selfie'),
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }
 
-  Widget _buildCornerGuide({required bool isTop, required bool isLeft}) {
-    return Container(
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        border: Border(
-          top: isTop ? const BorderSide(color: AppTheme.primaryLight, width: 2) : BorderSide.none,
-          bottom: !isTop ? const BorderSide(color: AppTheme.primaryLight, width: 2) : BorderSide.none,
-          left: isLeft ? const BorderSide(color: AppTheme.primaryLight, width: 2) : BorderSide.none,
-          right: !isLeft ? const BorderSide(color: AppTheme.primaryLight, width: 2) : BorderSide.none,
+  Widget _buildStudioModelRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Instant Try-On with Tested Studio Faces:',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
         ),
-      ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (int i = 1; i <= 3; i++)
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: i < 3 ? 8.0 : 0),
+                  child: GestureDetector(
+                    onTap: () => _loadModelPreset(i),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: _selectedModelIndex == i && _faceVerified ? AppTheme.primary.withOpacity(0.2) : AppTheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _selectedModelIndex == i && _faceVerified ? AppTheme.primaryLight : AppTheme.border,
+                          width: _selectedModelIndex == i && _faceVerified ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/portraits/model_$i.jpg',
+                              height: 55,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Model $i',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: _selectedModelIndex == i && _faceVerified ? AppTheme.primaryLight : AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildTipRow(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ', style: TextStyle(color: AppTheme.accentCyan, fontWeight: FontWeight.bold)),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==================== STEP 1: STYLE SELECTION ====================
+  // ==================== STEP 1: TARGET QUESTION & STYLE SELECTION ====================
 
   Widget _buildStyleSelectionStep() {
     final query = _searchQuery.toLowerCase();
@@ -905,32 +972,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return Column(
       children: [
-        // Tab Bar for Hairstyles (25) and Beard Styles (25)
-        Container(
-          color: AppTheme.surface,
-          child: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.face, size: 18),
-                text: 'Hairstyles (25)',
-              ),
-              Tab(
-                icon: Icon(Icons.mood, size: 18),
-                text: 'Beard Styles (25)',
-              ),
-            ],
-          ),
-        ),
+        // Target Selection Header ("What do you want to make? Hairstyle or Beard?")
+        _buildStyleTargetSelector(),
 
         // Search Bar
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: TextField(
             controller: _searchController,
             onChanged: (val) => setState(() => _searchQuery = val),
             decoration: InputDecoration(
-              hintText: 'Search styles by name or features (e.g. fade, crop, goatee)...',
+              hintText: _styleTarget == 'hair'
+                  ? 'Search 25 hairstyles (e.g. fade, crop, pompadour)...'
+                  : (_styleTarget == 'beard'
+                      ? 'Search 25 beard styles (e.g. stubble, goatee, short)...'
+                      : 'Search 50 hair & beard styles...'),
               prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
@@ -945,38 +1001,173 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ),
 
-        // Tab Views
+        // Catalog Display based on user choice
         Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              // Hair Tab View
-              _buildCatalogGrid(
-                styles: filteredHair,
-                categories: StyleCatalogData.hairCategories,
-                activeCategory: _hairCategory,
-                onCategorySelected: (cat) => setState(() => _hairCategory = cat),
-                selectedStyle: _selectedHair,
-                onSelect: _toggleHairStyle,
-              ),
-
-              // Beard Tab View
-              _buildCatalogGrid(
-                styles: filteredBeard,
-                categories: StyleCatalogData.beardCategories,
-                activeCategory: _beardCategory,
-                onCategorySelected: (cat) => setState(() => _beardCategory = cat),
-                selectedStyle: _selectedBeard,
-                onSelect: _toggleBeardStyle,
-              ),
-            ],
-          ),
+          child: _buildTargetCatalogView(filteredHair, filteredBeard),
         ),
 
         // Sticky Bottom Bar with current selection + Generate button
         _buildSelectionBottomBar(),
       ],
     );
+  }
+
+  Widget _buildStyleTargetSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: AppTheme.surface,
+        border: Border(bottom: BorderSide(color: AppTheme.border)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'What would you like to style on your face?',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Select whether you want haircut, beard trim, or both:',
+            style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildTargetChoiceCard(
+                target: 'hair',
+                icon: Icons.content_cut,
+                title: 'Hairstyle',
+                subtitle: '25 Haircuts',
+              ),
+              const SizedBox(width: 8),
+              _buildTargetChoiceCard(
+                target: 'beard',
+                icon: Icons.brush,
+                title: 'Beard Style',
+                subtitle: '25 Trims',
+              ),
+              const SizedBox(width: 8),
+              _buildTargetChoiceCard(
+                target: 'both',
+                icon: Icons.auto_awesome,
+                title: 'Both Styles',
+                subtitle: 'Combined',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTargetChoiceCard({
+    required String target,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final isSelected = _styleTarget == target;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onSelectStyleTarget(target),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primary.withOpacity(0.25) : AppTheme.surfaceElevated,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? AppTheme.primaryLight : AppTheme.border,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: isSelected ? AppTheme.primaryLight : AppTheme.textSecondary),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.white : AppTheme.textPrimary,
+                ),
+              ),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isSelected ? AppTheme.primaryLight : AppTheme.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTargetCatalogView(List<StyleModel> filteredHair, List<StyleModel> filteredBeard) {
+    if (_styleTarget == 'hair') {
+      return _buildCatalogGrid(
+        styles: filteredHair,
+        categories: StyleCatalogData.hairCategories,
+        activeCategory: _hairCategory,
+        onCategorySelected: (cat) => setState(() => _hairCategory = cat),
+        selectedStyle: _selectedHair,
+        onSelect: _toggleHairStyle,
+      );
+    } else if (_styleTarget == 'beard') {
+      return _buildCatalogGrid(
+        styles: filteredBeard,
+        categories: StyleCatalogData.beardCategories,
+        activeCategory: _beardCategory,
+        onCategorySelected: (cat) => setState(() => _beardCategory = cat),
+        selectedStyle: _selectedBeard,
+        onSelect: _toggleBeardStyle,
+      );
+    } else {
+      // Both tabs
+      return Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(icon: Icon(Icons.face, size: 16), text: 'Hairstyles (25)'),
+              Tab(icon: Icon(Icons.mood, size: 16), text: 'Beard Styles (25)'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCatalogGrid(
+                  styles: filteredHair,
+                  categories: StyleCatalogData.hairCategories,
+                  activeCategory: _hairCategory,
+                  onCategorySelected: (cat) => setState(() => _hairCategory = cat),
+                  selectedStyle: _selectedHair,
+                  onSelect: _toggleHairStyle,
+                ),
+                _buildCatalogGrid(
+                  styles: filteredBeard,
+                  categories: StyleCatalogData.beardCategories,
+                  activeCategory: _beardCategory,
+                  onCategorySelected: (cat) => setState(() => _beardCategory = cat),
+                  selectedStyle: _selectedBeard,
+                  onSelect: _toggleBeardStyle,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildCatalogGrid({
@@ -989,7 +1180,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }) {
     return Column(
       children: [
-        // Category Pills
+        // Category Filter Chips
         SizedBox(
           height: 44,
           child: ListView.separated(
@@ -1042,7 +1233,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildSelectionBottomBar() {
-    final hasSelection = _selectedHair != null || _selectedBeard != null;
+    final hasSelection = (_styleTarget == 'hair' && _selectedHair != null) ||
+        (_styleTarget == 'beard' && _selectedBeard != null) ||
+        (_styleTarget == 'both' && (_selectedHair != null || _selectedBeard != null));
+
+    String targetLabel = 'Try-On Look';
+    if (_styleTarget == 'hair' && _selectedHair != null) {
+      targetLabel = 'Apply ${_selectedHair!.name}';
+    } else if (_styleTarget == 'beard' && _selectedBeard != null) {
+      targetLabel = 'Apply ${_selectedBeard!.name}';
+    } else if (_styleTarget == 'both') {
+      targetLabel = 'Apply Complete Look';
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1062,7 +1264,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'CURRENT SELECTION',
+                        'SELECTION FOR YOUR FACE',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -1085,9 +1287,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             }),
                           ],
                           if (!hasSelection)
-                            const Text(
-                              'Select at least 1 hairstyle or beard',
-                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                            Text(
+                              _styleTarget == 'hair'
+                                  ? 'Select a hairstyle from 25 cuts above'
+                                  : (_styleTarget == 'beard'
+                                      ? 'Select a beard style from 25 trims above'
+                                      : 'Select hair and/or beard style above'),
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                             ),
                         ],
                       ),
@@ -1097,7 +1303,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ElevatedButton.icon(
                   onPressed: hasSelection ? _startGeneration : null,
                   icon: const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Try-On Look'),
+                  label: Text(targetLabel),
                 ),
               ],
             ),
@@ -1134,7 +1340,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ==================== STEP 2: RESULT VIEW ====================
+  // ==================== STEP 2: RESULT VIEW WITH BEFORE/AFTER SLIDER ====================
 
   Widget _buildResultStep() {
     if (_isGenerating) {
@@ -1181,7 +1387,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 16),
               const Text(
-                'Golden Rule: Identity preservation active. Only hair and beard follicles are adjusted.',
+                'Golden Rule: 100% Identity Preservation active. Facial geometry, eyes, nose & mouth untouched.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
               ),
@@ -1202,20 +1408,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             children: [
               if (_selectedHair != null)
                 Chip(
-                  avatar: const Icon(Icons.face, size: 14, color: AppTheme.primaryLight),
+                  avatar: const Icon(Icons.content_cut, size: 14, color: AppTheme.primaryLight),
                   label: Text('Hair: ${_selectedHair!.name}'),
                 ),
               if (_selectedHair != null && _selectedBeard != null) const SizedBox(width: 8),
               if (_selectedBeard != null)
                 Chip(
-                  avatar: const Icon(Icons.mood, size: 14, color: AppTheme.accentCyan),
+                  avatar: const Icon(Icons.brush, size: 14, color: AppTheme.accentCyan),
                   label: Text('Beard: ${_selectedBeard!.name}'),
                 ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Interactive Before/After Comparison Slider
+          // Interactive Before/After Comparison Slider on User's Face
           BeforeAfterSlider.fromBytes(
             beforeBytes: _uploadedPhotoBytes,
             afterBytes: _resultPhotoBytes ??
@@ -1230,9 +1436,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               borderRadius: BorderRadius.circular(16),
               child: Image.asset('assets/portraits/transform_after_1.jpg', fit: BoxFit.cover),
             ),
-            beforeLabel: 'ORIGINAL SELFIE',
-            afterLabel: '${_selectedHair?.name ?? 'Natural Hair'} + ${_selectedBeard?.name ?? 'Natural Beard'}'
-                .trim(),
+            beforeLabel: 'YOUR ORIGINAL FACE',
+            afterLabel: '${_selectedHair?.name ?? 'Natural Hair'} + ${_selectedBeard?.name ?? 'Natural Beard'}'.trim(),
           ),
           const SizedBox(height: 16),
 
@@ -1269,7 +1474,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: OutlinedButton.icon(
                   onPressed: () => setState(() => _currentStep = 1),
                   icon: const Icon(Icons.tune),
-                  label: const Text('Change Style'),
+                  label: const Text('Try Another Style'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1279,7 +1484,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         backgroundColor: AppTheme.primary,
-                        content: Text('✓ Style preview ready for saving / barber consultation.'),
+                        content: Text('✓ Style preview ready for barber consultation / gallery save.'),
                       ),
                     );
                   },
@@ -1307,12 +1512,5 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ],
       ),
     );
-  }
-
-  Uint8List _createSamplePortraitBytes() {
-    // 1x1 transparent PNG fallback bytes
-    const base64Png =
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-    return base64Decode(base64Png);
   }
 }

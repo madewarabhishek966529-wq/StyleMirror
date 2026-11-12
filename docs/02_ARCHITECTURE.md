@@ -1,114 +1,101 @@
 # 02 — Architecture
 
-## Tech Stack (no Docker, no frontend framework)
-| Layer | Choice | Why |
+## Multi-Language Tech Stack (No Docker)
+
+| Layer | Language / Technology | Why & Location |
 |---|---|---|
-| Frontend | **Plain HTML + CSS + JavaScript** (ES modules, `fetch`) | No build step, simple to host and edit |
-| Backend | **Python 3.11+ with FastAPI + Uvicorn** | Best image/AI ecosystem, async |
-| AI generation | **Hosted AI API (API key)** — Gemini image-editing model as primary, optional fallback providers | Changes hair/beard without a GPU |
-| Face check | MediaPipe Face Landmarker (OpenCV as fallback) | Face count, pose, size |
-| Images | Pillow + OpenCV | Resize, EXIF fix, watermark |
-| Jobs | FastAPI `BackgroundTasks` / `asyncio` + a `generations` table (no Redis) | Generation takes 5–20 s |
-| DB | **SQLite** for dev/MVP (SQLAlchemy); Supabase Postgres later if needed | Zero setup |
-| File storage | Local `storage/` folder (MVP); Supabase/Firebase Storage later | Simple TTL cleanup |
-| Rate limit | `slowapi` (in-memory) | No extra services |
-| Hosting | Render / Railway / any VPS running `uvicorn` (no containers). Backend serves the static frontend too | One deployable |
-| Monitoring | Sentry (Python + browser snippet), optional PostHog | Errors + funnel |
+| **Mobile & Desktop Client** | **Dart 3.x with Flutter 3.x** | Fast cross-platform native rendering (Android, iOS, Windows, macOS, Linux, Web), reactive state management, custom touch widgets. Found in `lib/`. |
+| **Backend REST API** | **Python 3.12+ with FastAPI & Uvicorn** | Asynchronous HTTP server, native AI/ML libraries, OpenCV computer vision, and schema validation with Pydantic v2. Found in `backend/app/`. |
+| **Native Platform Embeddings** | **Kotlin (Android), Swift (iOS/macOS), C++ (Windows)** | Native camera permissions, hardware acceleration, window chrome, and process lifecycle. Found in `android/`, `ios/`, `macos/`, and `windows/`. |
+| **Automation & Launchers** | **PowerShell & Windows Batch** | 1-click startup automation scripts (`run.ps1`, `run.bat`) that coordinate Python daemon execution and Flutter client attachment. |
+| **AI Generation** | **Google Gemini Vision / Inpainting AI** | Identity-preserving facial editing via multi-key rotating pool (`KeyPool`). Offline studio model fallback when disconnected. |
+| **Facial Validation** | **OpenCV (`cv2`) Haar Cascade** | Adaptive bounding-box single face detection (`face_check.py`), blur variance score, and frontal alignment checks. |
+| **Database & Persistence** | **SQLite + SQLAlchemy ORM** | Lightweight relational database for styles catalog, generation job tracking, and saved look bookmarks. |
+| **Temporary File Storage** | **Local Disk Storage (`backend/storage/`)** | Zero container overhead; strictly regulated by 24-hour TTL automated purge. |
 
-## API Keys — How Hair & Beard Changing Works
-- The AI provider **API key lives only in the Python backend `.env`**. It is never written into HTML/JS (anyone could read it in the browser).
-- Browser → `POST /v1/generations` → Python backend → AI provider using the key → result image → browser.
-- Supports several keys for rotation/fallback: `GEMINI_API_KEYS=key1,key2` (backend picks round-robin and skips a key on 429/quota errors).
-- Optional fallback provider key (e.g. `REPLICATE_API_TOKEN`) selected by `AI_PROVIDER` / `AI_FALLBACK_PROVIDER`.
-- Add a per-user and global daily cap so a leaked page cannot burn your quota.
+---
 
-## System Diagram
+## API Keys & Security Architecture
+* **Server-Side API Key Confinement**: The AI provider API keys (`GEMINI_API_KEYS`) live exclusively in `backend/.env` on the server machine. Keys are never embedded into Dart code or exposed to client apps.
+* **KeyPool Rotation**: The backend implements round-robin key rotation across comma-separated keys and automatically marks/skips keys encountering 429 quota exhaustion.
+* **Offline Demo Fallback**: When API keys are not supplied or network is unavailable, the Flutter app and backend seamlessly switch to local studio model presets, ensuring full offline functionality.
+
+---
+
+## System Architecture Diagram
+
 ```
-Browser (HTML/CSS/JS) ──HTTPS──▶ FastAPI (Python) ──API key──▶ AI Provider (Gemini / fallback)
-                                     │
-                                     ├─▶ SQLite (styles, photos, generations)
-                                     └─▶ storage/ (photos, outputs, auto-deleted)
+┌────────────────────────────────────────────────────────┐
+│             Flutter Client (Dart 3.x)                  │
+│                                                        │
+│  • DashboardView (My Face Profile & Recommendations)   │
+│  • ExplorerView (25 Hairstyles + 25 Beard Styles)      │
+│  • TryOnStudio (Selfie Capture & Fine-Tuning Controls) │
+│  • MyStylesVault (Saved Looks & Barber Card Export)    │
+│  • ProfileGuide (Face Calibration & Grooming Hub)      │
+└───────────────────────────┬────────────────────────────┘
+                            │
+               HTTP / REST  │ (Port 8000)
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│          FastAPI Backend (Python 3.12+)                │
+│                                                        │
+│  • OpenCV Face Check: Exactly 1 face, blur check       │
+│  • Routers: /v1/photos, /v1/generations, /v1/styles    │
+│  • KeyPool: Multi-key rotation & 429 quota handling    │
+│  • Storage Service: 24-hour TTL automated purge worker │
+│  • SQLite DB: stylemirror.db via SQLAlchemy ORM        │
+└───────────────────────────┬────────────────────────────┘
+                            │
+              HTTPS API Key │ (Inpainting Prompt)
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│     Google Gemini Vision / Image Editing API           │
+│     (Preserves authentic facial identity)              │
+└────────────────────────────────────────────────────────┘
 ```
 
-## Request Lifecycle
-1. Browser uploads the selfie: `POST /v1/photos` (multipart form).
-2. Backend validates the face and returns `{photo_id, ok, issues[]}`.
-3. Browser calls `POST /v1/generations` with `hair_style_id` and/or `beard_style_id` → `job_id`.
-4. Background task: build prompt → call AI provider with API key → identity check → save output.
-5. Browser polls `GET /v1/generations/{job_id}` every ~1.5 s until `done`, then shows the image.
+---
 
-## Project Structure
+## Request & Data Lifecycle
+
+1. **Auto-Launch Check**: On startup, Flutter's `BackendLauncher` verifies `http://localhost:8000/health`. If inactive, it spawns `uvicorn app.main:app --port 8000` automatically.
+2. **Selfie Upload & OpenCV Check**: Flutter posts multipart photo to `POST /v1/photos`. `face_check.py` validates that exactly 1 face exists with sharpness $\sigma^2 > 45.0$.
+3. **Generation Dispatch**: Client issues `POST /v1/generations` specifying `photo_id`, `hair_style_id` (`H01`–`H25`), and/or `beard_style_id` (`B01`–`B25`).
+4. **AI Inpainting**: Background task prompts Gemini Vision to retain eyes, nose, mouth, jawline, and skin tone while inpainting only the target hairstyle or beard silhouette.
+5. **Interactive Inspection**: Result image is streamed back to Flutter, which renders the tactile Before/After split slider.
+6. **Barber Consultation Export**: User saves look to My Styles and generates the Barber Card with clipper guard numbers.
+7. **Automated Purge**: 24-hour TTL background cleaner permanently deletes photos and generation outputs from storage and database.
+
+---
+
+## Directory Organization
+
 ```
 stylemirror/
-├─ backend/
-│  ├─ app/
-│  │  ├─ main.py                 # FastAPI app, mounts /static frontend
-│  │  ├─ config.py               # loads .env (pydantic-settings)
-│  │  ├─ db.py  models.py  schemas.py
-│  │  ├─ routers/{styles,photos,generations}.py
-│  │  ├─ services/{face_check,storage,identity,keys,cleanup}.py
-│  │  ├─ ai/{base,gemini,fallback}.py
-│  │  ├─ prompts.py
-│  │  └─ workers/generate.py
-│  ├─ tests/
-│  ├─ requirements.txt
-│  └─ .env.example
-├─ frontend/
-│  ├─ index.html                 # landing
-│  ├─ try.html                   # upload → style → result
-│  ├─ privacy.html  terms.html
-│  ├─ css/{base.css,layout.css,components.css}
-│  ├─ js/{main.js,api.js,state.js,uploader.js,styleGrid.js,slider.js,progress.js}
-│  └─ assets/styles/{hair,beard}/   # cropped thumbnails
-├─ scripts/{crop_sheet.py,seed_styles.py}
-├─ .gitignore
-└─ README.md
+├── android/                 # Android native embedding & Kotlin build tasks
+├── ios/                     # iOS native embedding & camera permissions
+├── macos/                   # macOS desktop runner
+├── windows/                 # Windows C++ desktop runner & CMake files
+├── lib/                     # Flutter Client Application (Dart)
+│   ├── core/theme/          # Master obsidian & gold theme palette
+│   ├── data/                # 50 styles catalog & grooming guide data
+│   ├── models/              # FaceProfile, StyleModel, Generation, Photo
+│   ├── screens/             # 5 core tabs + 13 complete screen interfaces
+│   ├── services/            # ApiService client & BackendLauncher daemon
+│   └── widgets/             # BeforeAfterSlider, Dialogs, StyleCard
+├── test/                    # 22 Flutter unit, widget & catalog tests
+├── backend/                 # FastAPI REST Backend (Python 3.12+)
+│   ├── app/
+│   │   ├── ai/              # Gemini Vision provider & KeyPool rotation
+│   │   ├── routers/         # /styles, /photos, /generations, /suggestions
+│   │   ├── services/        # OpenCV face_check, storage, 24h cleanup
+│   │   ├── config.py        # Pydantic v2 settings
+│   │   ├── db.py            # SQLite database engine
+│   │   ├── models.py        # SQLAlchemy entities
+│   │   └── main.py          # FastAPI application
+│   ├── tests/               # 15 Pytest backend tests
+│   └── requirements.txt     # Python dependencies
+├── run.bat                  # 1-click Windows CMD runner
+└── run.ps1                  # 1-click PowerShell runner
 ```
-
-## Run Locally (no Docker)
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env                 # then paste your API key(s)
-python ../scripts/seed_styles.py
-uvicorn app.main:app --reload --port 8000
-# open http://localhost:8000
-```
-
-## `requirements.txt` (starting point)
-```
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic-settings
-sqlalchemy
-pillow
-opencv-python-headless
-mediapipe
-numpy
-httpx
-google-genai
-slowapi
-python-dotenv
-sentry-sdk
-pytest
-ruff
-```
-
-## Environment Variables (`backend/.env`)
-```
-AI_PROVIDER=gemini
-GEMINI_API_KEYS=your_key_1,your_key_2
-AI_FALLBACK_PROVIDER=
-REPLICATE_API_TOKEN=
-DATABASE_URL=sqlite:///./stylemirror.db
-STORAGE_DIR=./storage
-PHOTO_TTL_HOURS=24
-RATE_LIMIT_ANON_PER_HOUR=10
-DAILY_GENERATION_CAP=500
-ALLOWED_ORIGIN=http://localhost:8000
-SENTRY_DSN=
-```
-Commit only `.env.example`, never `.env`.

@@ -1,159 +1,441 @@
 # StyleMirror 🪞
-
-> **AI-Powered Hair & Beard Virtual Try-On Application**
-> Transform your look while keeping your facial identity 100% authentic.
-
----
-
-## 🌟 Overview
-
-**StyleMirror** enables men to preview hairstyles and beard cuts before visiting the barber. By leveraging identity-preserving AI models, users can visualize themselves with any of **25 hairstyles** and **25 beard styles** individually or combined.
-
-- **Frontend**: Flutter Cross-Platform Mobile Application (Android, iOS, macOS, Windows).
-- **Backend**: Python 3.12+ with FastAPI + Uvicorn (No Docker needed).
-- **AI Engine**: Gemini Vision/Editing image pipeline with automated `KeyPool` rotation and fallback.
-- **Privacy & Safety**: 24-hour TTL automated purge, zero AI model training on user data, and one-tap instant deletion.
+> **AI-Powered Men's Grooming, Hairstyle & Beard Virtual Try-On Application**  
+> *Transform your hairstyle and beard while preserving 100% authentic facial identity.*
 
 ---
 
-## 📸 Core Features
-
-1. **Selfie Capture & Face Validation**:
-   - Camera & Gallery integration with real-time pose and lighting alignment guides.
-   - Server-side pre-validation checking face proportion, blur score (Laplacian variance), illumination, and frontal orientation.
-2. **Style Catalog (50 Distinct Styles)**:
-   - **25 Hairstyles (`H01`–`H25`)**: Crew Cut, Buzz Cut, French Crop, Ivy League, Side Part, Mid Fade, High Fade, Low Fade, Taper Fade, Skin Fade, Undercut, Quiff, Pompadour, Slick Back, Comb Over, Curtain Hair, Bro Flow, Textured Crop, Messy Hair, Spiky Hair, Man Bun, Top Knot, Long Hair, Mullet, Curly Hair.
-   - **25 Beard Styles (`B01`–`B25`)**: Clean Shaven, Stubble, Short Boxed Beard, Medium Beard, Full Beard, Goatee, Extended Goatee, Van Dyke, Circle Beard, Anchor Beard, Balbo Beard, Soul Patch, Mutton Chops, Friendly Mutton Chops, Verdi Beard, Garibaldi, Dutch Beard, Bandholz, Corporate Beard, Hollywoodian, Designer Stubble, Chin Strap, Neck Beard, Imperial, Horseshoe.
-3. **Interactive Before/After Comparison Slider**:
-   - Dual-layer interactive split slider with tactile drag handle.
-   - Mode switching: Split Slider, Side-by-Side Comparison, Original Only, Styled Only.
-4. **"Suggest for Me" by Face Shape**:
-   - Recommends optimal hairstyles and beard geometries based on facial shape (Oval, Round, Square, Heart, Diamond, Oblong).
-5. **Saved Looks ("My Looks")**:
-   - Bookmark favorite generated looks with unique sharing IDs for barber consultation.
-6. **24-Hour TTL Auto-Purge & Immediate Wipe**:
-   - User photos and generated assets are automatically purged after 24 hours.
-   - One-tap "Delete My Photo Now" permanently purges files and database records immediately.
+## 📋 Table of Contents
+1. [Executive Summary](#-executive-summary)
+2. [Programming Languages & Technology Stack](#-programming-languages--technology-stack)
+3. [How StyleMirror Works (End-to-End Workflow)](#-how-stylemirror-works-end-to-end-workflow)
+4. [Complete 13-Screen Application Suite](#-complete-13-screen-application-suite)
+5. [Visual Design System & Color Palette](#-visual-design-system--color-palette)
+6. [System Architecture & Data Flow](#-system-architecture--data-flow)
+7. [Repository File Structure](#-repository-file-structure)
+8. [Automated Full-Stack Launch (Zero-Config)](#-automated-full-stack-launch-zero-config)
+9. [Automated Testing & Verification Suite](#-automated-testing--verification-suite)
+10. [Security, Privacy & Data Retention](#-security-privacy--data-retention)
 
 ---
 
-## 📁 Project Structure
+## 🌟 Executive Summary
+
+**StyleMirror** is a production-grade, privacy-first AI men's grooming application designed to solve a fundamental barber challenge: *"How will this haircut or beard actually look on my face?"*
+
+Unlike generic fashion shopping apps or crude face-swap filters, StyleMirror is **exclusively engineered for male hair and beard styling**:
+* **Identity-Preserving AI**: Keeps facial features, bone structure, skin tone, and expressions completely intact while photorealistically modifying only hair and facial hair.
+* **Precision Face Shape Analysis**: Detects facial geometry across 6 core shapes (*Oval, Round, Square, Rectangle, Diamond, Heart*) and computes tailored haircut and beard recommendations.
+* **Barber Consultation Specifications**: Translates every virtual look into real-world barber instructions with clipper guard numbers (e.g., `#1.5 Skin Fade`), scissor top lengths (`1.5–2 inches`), and styling products (e.g., matte clay vs. pomade).
+* **Automated Full-Stack Coordination**: Runs as a Flutter cross-platform mobile/desktop client with a dedicated Python FastAPI backend that automatically starts in the background without needing Docker.
+
+---
+
+## 💻 Programming Languages & Technology Stack
+
+StyleMirror is built using a modern, multi-language architecture where each language is chosen for its specific strengths:
+
+| Language | Primary Role | Framework / Tooling | Key Responsibilities & Code Locations |
+| :--- | :--- | :--- | :--- |
+| **Dart** | **Frontend Client UI & State** | **Flutter 3.x (Null-Safe)** | Drives the entire cross-platform mobile and desktop experience. Manages reactive state, screen routing, 5-destination navigation bar, custom split sliders, biometrics dialog, HTTP API communication, and offline fallback mode. Located in [`lib/`](lib/) and [`test/`](test/). |
+| **Python** | **Backend REST API & AI Pipeline** | **Python 3.12+, FastAPI, Uvicorn** | High-performance asynchronous API server. Handles image uploading, OpenCV facial validation, Google Gemini Vision prompting, multi-key quota rotation (`KeyPool`), SQLite ORM models, and 24-hour background cleanup. Located in [`backend/app/`](backend/app/). |
+| **Kotlin** | **Android Host Platform** | **Android SDK, Gradle Kotlin DSL** | Powers the native Android wrapper ([`MainActivity.kt`](android/app/src/main/kotlin/com/example/stylemirror/MainActivity.kt)). Automates host-level Python backend verification and port binding via custom Gradle tasks in [`build.gradle.kts`](android/app/build.gradle.kts). |
+| **Swift** | **iOS & macOS Host Platform** | **iOS / macOS Runner, CocoaPods** | Handles native camera hardware permissions, photo library entitlements, high-DPI windowing, and application lifecycle on Apple platforms ([`ios/Runner/AppDelegate.swift`](ios/Runner/AppDelegate.swift), [`macos/Runner/AppDelegate.swift`](macos/Runner/AppDelegate.swift)). |
+| **C++** | **Windows Native Desktop Host** | **Win32 API, Windows C++ Runner** | Manages Windows native window frame creation, DirectX hardware acceleration, message pump loops, and process life-cycle binding ([`windows/runner/main.cpp`](windows/runner/main.cpp), [`flutter_window.cpp`](windows/runner/flutter_window.cpp)). |
+| **CMake** | **Desktop Build System** | **CMake 3.14+** | Compiles native desktop binaries and dependencies for Windows builds ([`windows/CMakeLists.txt`](windows/CMakeLists.txt)). |
+| **PowerShell** | **Cross-Platform Automation** | **PowerShell 5.1+ / PS Core** | Provides zero-click developer orchestration script [`run.ps1`](run.ps1) that tests port 8000, starts the Python backend daemon, installs dependencies, and boots the Flutter app. |
+| **Batch (CMD)** | **Windows Command Launcher** | **Windows Shell Batch** | Provides one-click launch wrapper [`run.bat`](run.bat) for standard Windows Command Prompt environments. |
+| **SQL (SQLite)**| **Relational Data Storage** | **SQLAlchemy ORM + SQLite3** | Lightweight database engine for catalog caching, generation jobs, temporary photo metadata, and user look bookmarks ([`backend/app/db.py`](backend/app/db.py)). Runs locally with zero container overhead. |
+| **JSON** | **Data Serialization** | **JSON Schema & Dart Mappers** | Standard communication protocol between client and server for request bodies, validation errors, biometrics, and styles catalog. |
+| **Markdown** | **Documentation & Knowledge Hub**| **GFM & In-App Readers** | System specifications, QA audit reports, and rich educational barber articles rendered in the app's Grooming Guide. |
+
+---
+
+## ⚙️ How StyleMirror Works (End-to-End Workflow)
+
+The complete end-to-end lifecycle of StyleMirror operates in 8 sequential phases:
+
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  1. Auto-Boot   │ ──▶  │  2. Biometrics  │ ──▶  │ 3. Shape Analysis│ ──▶  │ 4. Style Choice │
+│ Backend + Client│      │ OpenCV Face Check│     │ 6 Geometry Types│      │ 50 Barber Looks │
+└─────────────────┘      └─────────────────┘      └─────────────────┘      └─────────────────┘
+                                                                                    │
+                                                                                    ▼
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  8. 24h Purge   │ ◀──  │ 7. Barber Card  │ ◀──  │ 6. Comparison   │ ◀──  │ 5. Virtual Try-On│
+│ Zero AI Training│      │ Clipper & Guard │      │ Dual Split-Slider│      │ Gemini Vision AI│
+└─────────────────┘      └─────────────────┘      └─────────────────┘      └─────────────────┘
+```
+
+### Phase 1: Automated Full-Stack Boot
+1. The user launches the application via `run.bat`, `run.ps1`, or IDE (`F5`).
+2. The [`BackendLauncher`](lib/services/backend_launcher.dart) service checks if `http://localhost:8000/health` is responsive.
+3. If the backend is not yet running, it spawns Python with `uvicorn app.main:app --port 8000` in the background automatically.
+4. The Flutter UI initializes with graceful offline demo fallback, ensuring the app remains 100% functional even if network services are interrupted.
+
+### Phase 2: Biometric Capture & OpenCV Single-Face Verification
+1. The user captures a selfie or picks a portrait from their gallery.
+2. The front camera displays an oval alignment reticle with lighting recommendations.
+3. Before processing, the image is passed to the Python backend's [`face_check.py`](backend/app/services/face_check.py) service:
+   - Uses OpenCV Haar Cascades with adaptive minimum box dimensions (`min_sz = max(70, min(w, h) * 0.16)`).
+   - Validates that **exactly one single human face** is present (rejects group photos, photos without faces, or false positives from clothing collars).
+   - Computes blur score using the Laplacian variance ($\sigma^2_{\text{Laplacian}} > 45.0$).
+   - Rejects images with extreme pitch or yaw rotation to ensure frontal accuracy.
+
+### Phase 3: AI Face Shape & Facial Feature Classification
+1. The AI engine analyzes the portrait's facial geometry and proportions.
+2. Classifies the user's face into one of 6 biometric shapes:
+   - **Oval**: Balanced forehead and chin; rounded jawline.
+   - **Square**: Strong angular jaw; forehead, cheekbones, and jawline of equal width.
+   - **Round**: Equal width and length; soft rounded jaw and cheeks.
+   - **Rectangle / Oblong**: Elongated face height; straight cheek lines.
+   - **Diamond**: Narrow forehead and chin with wide, prominent cheekbones.
+   - **Heart**: Wide forehead tapering down to a pointed chin.
+3. The system maps the face shape to complementary haircut volumes and beard silhouettes that balance the facial proportions.
+
+### Phase 4: Curated Style Selection & Exploration
+1. Users explore **50 hand-crafted male grooming styles**:
+   - **25 Hairstyles (`H01`–`H25`)**: Crew Cut, French Crop, Textured Fringe, Pompadour, Quiff, Skin Fade, Taper Fade, Buzz Cut, Mullet, Curly Fade, etc.
+   - **25 Beard Styles (`B01`–`B25`)**: Clean Shaven, Heavy Stubble, Short Boxed Beard, Balbo, Goatee, Van Dyke, Corporate Beard, Full Beard, etc.
+2. Users can filter by face compatibility, search by keywords (e.g., "fade", "crop"), or view exact barber clipper guard requirements.
+
+### Phase 5: AI Virtual Try-On Generation
+1. The client issues a `POST /v1/generations` request containing:
+   - `photo_id`: The validated portrait identifier.
+   - `hair_style_id`: Target hairstyle (`H01`–`H25`) or `null`.
+   - `beard_style_id`: Target beard style (`B01`–`B25`) or `null`.
+2. The backend Gemini Vision AI pipeline constructs an identity-locked prompt:
+   - Instructs the diffusion model to preserve facial bone structure, eyes, nose, lips, ears, skin texture, and expressions.
+   - Inpaints only the cranial hair and lower mandibular facial hair regions.
+3. The multi-key `KeyPool` rotates active Google Gemini API keys to guarantee zero 429 quota exhaustion.
+
+### Phase 6: Interactive Before/After Visual Comparison
+1. Once generated, the result is displayed in the Virtual Try-On Studio.
+2. An interactive [`BeforeAfterSlider`](lib/widgets/before_after_slider.dart) allows real-time comparison:
+   - **Split Slider**: Tactile draggable divider to slide across the face.
+   - **Side-by-Side**: Direct dual-card inspection.
+   - **Original Only / Styled Only**: Instant full-frame toggle.
+
+### Phase 7: Barber Consultation Card Export
+1. Users can save generated looks to their **My Styles Vault**.
+2. Tap **"Barber Card"** to generate an exportable consultation card containing:
+   - Top scissor length (e.g., `1.5–2 inches textured scissor cut`).
+   - Side clipper guard number (e.g., `#1.5 to #2 Fade Transition`).
+   - Neckline contour (e.g., `Tapered natural neckline`).
+   - Beard guard & cheek line instructions (e.g., `6mm baseline, diagonal cheek sculpting`).
+   - Recommended styling product (e.g., `Matte styling clay with pliable hold`).
+
+### Phase 8: Data Privacy & Automated 24-Hour Purge
+1. StyleMirror adheres strictly to DPDP / GDPR principles.
+2. User photos are never used to train or fine-tune AI models.
+3. Background cleanup jobs automatically delete temporary photos and generated output files after 24 hours.
+4. Users can tap **"Instant Wipe"** to permanently delete their photos, cached outputs, and biometric records immediately.
+
+---
+
+## 📱 Complete 13-Screen Application Suite
+
+StyleMirror is structured into 13 high-fidelity screens organized under a persistent 5-section bottom navigation bar:
+
+```
+Navigation Bar: [ Home ] [ Explore ] [ Try On ] [ My Styles ] [ Profile ]
+```
+
+### Screen 1 – Splash Screen
+* Premium dark obsidian background with glowing StyleMirror branding.
+* Tagline: *"Discover the Best Version of You."*
+* Automated background service ping and token initialization.
+
+### Screen 2 – Onboarding (3-Step Carousel)
+* **Screen 2A**: *Discover Your Perfect Hairstyle* — Explains face-shape-tailored hair recommendations.
+* **Screen 2B**: *Find Your Perfect Beard* — Demonstrates jawline sculpting and beard contouring.
+* **Screen 2C**: *Try Before You Choose* — Interactive preview of AI virtual try-on with Skip, Next, and Get Started buttons.
+
+### Screen 3 – Authentication & Security
+* Login, Sign Up, and Guest exploration modes.
+* Email and password fields with dynamic show/hide password visibility toggle.
+* Google Authentication option.
+* Form validation with real-time error states.
+
+### Screen 4 – Home Dashboard
+* Personalized greeting with user profile avatar and status.
+* **My Face Profile** hero card showing detected shape and biometric calibration badge.
+* **Virtual AI Try-On Studio** quick-action banner with 1-tap launch.
+* **Recommended Hairstyles** horizontally scrollable list tailored to user's face shape.
+* **Recommended Beard Styles** horizontally scrollable list tailored to user's face shape.
+* Trending Barber Cuts and Barber Tip of the Day.
+* Recent style transformation history card with 1-tap "Reuse" button.
+
+### Screen 5 – Face Analysis & Biometric Calibration
+* Frontal camera capture and gallery photo upload.
+* Oval biometric positioning reticle with lighting rules checklist.
+* Scanning animation simulating facial landmark detection.
+* Analysis results card displaying detected face shape (*Oval, Round, Square, Rectangle, Diamond, Heart*), proportions, jawline angle, forehead width, and hairline characteristics.
+
+### Screen 6 – Hairstyle Explorer
+* Complete catalog of **25 Hairstyles across 10 categories**:
+  * *Short, Medium, Long, Fade, Undercut, Textured, Curly, Wavy, Professional, Modern.*
+* Real-time search by cut name or barber terms.
+* Horizontal face-shape compatibility filter chips (*All Shapes, Oval Face, Square Face, etc.*).
+* Style detail modal with image preview, face compatibility tags, barber specifications, and *"Try This Hairstyle in Studio"* CTA.
+
+### Screen 7 – Beard Style Explorer
+* Complete catalog of **25 Beard Styles across 11 categories**:
+  * *Clean Shave, Light Stubble, Heavy Stubble, Short Beard, Full Beard, Goatee, Van Dyke, Balbo, Circle Beard, Boxed Beard, Corporate Beard.*
+* Real-time search and filtering.
+* Barber trimming specifications (guard lengths in mm, cheekline contouring rules).
+* Style detail modal with *"Try This Beard Style in Studio"* CTA.
+
+### Screen 8 – Virtual Try-On Studio
+* 3-step Try-On workflow:
+  1. *Upload / Capture Selfie* with OpenCV single-face validation.
+  2. *Choose Look Target* (Haircut only, Beard only, or Both Combined).
+  3. *AI Generation & Fine-Tuning* (customization controls for fade height, texture, and density).
+* Multi-model preset selector allowing testing with sample studio portraits.
+
+### Screen 9 – Visual Comparison & Inspection
+* Integrated dual-layer interactive split slider with tactile drag handle.
+* 4 viewing modes: *Split Slider, Side-by-Side, Original Only, Styled Only*.
+* High-resolution image inspection with zoom and pan.
+* Quick action toolbar: *Save to Vault, Share with Barber, Instant Wipe*.
+
+### Screen 10 – My Styles Vault
+* Stored look repository organized into 4 filter tabs:
+  * *Virtual Previews (generated results)*
+  * *Saved Hairstyles*
+  * *Saved Beard Styles*
+  * *Favorites (bookmarked looks)*
+* Biometric compatibility badges (e.g. `98% Match`).
+* Favorite heart toggle on each card.
+* **Barber Consultation Card** export trigger.
+
+### Screen 11 – Men's Grooming Knowledge Hub
+* 4 comprehensive, barber-authored deep-dive articles:
+  1. *The Essential Men's Hair Care Routine* (shampoo frequency, scalp health, towel-drying rules).
+  2. *Mastering the Beard Trim: Neckline & Cheek Lines* (2-finger rule above Adam's apple, diagonal cheek line).
+  3. *Matte Styling Clay vs. High-Shine Pomade* (hold levels, shine characteristics, hair type matching).
+  4. *Eliminating Beard Itch & Cultivating Density* (follicle hydration, boar bristle brushing, beard oil vs. balm).
+* Reading times and key barber rules checklist for each guide.
+
+### Screen 12 – Barber Consultation Card (Export Modal)
+* Clean, professional Barber Consultation Card designed to show directly to a barber.
+* Contains exact clipper guard specs (e.g. `#1.5 Skin Fade`), scissor top texture, neckline contour, and beard trim lengths.
+* Share and Print export triggers.
+
+### Screen 13 – Profile, Preferences & Privacy Commitments
+* User account summary with membership badge.
+* Face profile summary with 1-tap "Update" analysis button.
+* Appearance settings with real-time **Dark Mode (Obsidian) / Light Mode** theme switcher.
+* Grooming reminder notification toggles (bi-weekly haircut reminders).
+* Privacy & Security Commitments link explaining zero AI training and 24-hour purge.
+* Log Out action with confirmation feedback.
+
+---
+
+## 🎨 Visual Design System & Color Palette
+
+StyleMirror adheres to an ultra-modern, masculine dark technology aesthetic inspired by premium barber salons and modern AI tools:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  #101114  │  #191B20  │  #22252B  │  #B9A0FF  │  #D4C5A5  │  #FFFFFF  │
+│  Primary  │ Secondary │   Card    │  Electric │ Champagne │  Primary  │
+│Background │Background │Background │  Lavender │Barber Gold│   Text    │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+| Token Name | Hex Code | Purpose & Application |
+| :--- | :--- | :--- |
+| **Primary Background** | `#101114` | Deep obsidian backdrop for scaffolds, creating high visual contrast and battery efficiency on OLED displays. |
+| **Secondary Background** | `#191B20` | Subtle contrast surface for search bars, chips, and inner containers. |
+| **Card Background** | `#22252B` | Elevated card surfaces, bottom navigation bar, and dialog sheets with soft shadows. |
+| **Primary Accent** | `#B9A0FF` | Electric lavender used for primary buttons, active tab indicators, biometric badges, and highlights. |
+| **Secondary Accent** | `#D4C5A5` | Warm champagne barber gold used for secondary buttons, category chips, barber tips, and guide tags. |
+| **Primary Text** | `#FFFFFF` | Pure white typography for titles, primary headings, and selected states. |
+| **Secondary Text** | `#A1A1AA` | Cool muted grey for subtitles, reading times, descriptions, and inactive icons. |
+| **Success** | `#4ADE80` | Vibrant emerald green for biometric verification badges and compatibility tags. |
+| **Error / Danger** | `#F87171` | Warm red for face validation rejection alerts, warnings, and log out actions. |
+
+---
+
+## 🏗️ System Architecture & Data Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Flutter Client (Dart 3.x)                  │
+│                                                         │
+│  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐  │
+│  │ DashboardView │  │  ExplorerView │  │ TryOnStudio │  │
+│  └───────────────┘  └───────────────┘  └─────────────┘  │
+│  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐  │
+│  │ MyStylesVault │  │  ProfileGuide │  │Theme/Offline│  │
+│  └───────────────┘  └───────────────┘  └─────────────┘  │
+└────────────────────────────┬────────────────────────────┘
+                             │ HTTP REST (JSON / Multipart)
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│            FastAPI Backend (Python 3.12+)               │
+│                                                         │
+│  ┌────────────────────────┐  ┌───────────────────────┐  │
+│  │   Face Check Service   │  │   KeyPool Rotation    │  │
+│  │  (OpenCV Haar Cascade) │  │  (Multi-Key Gemini)   │  │
+│  └────────────────────────┘  └───────────────────────┘  │
+│  ┌────────────────────────┐  ┌───────────────────────┐  │
+│  │  SQLite Database Engine│  │ 24h Purge Background  │  │
+│  │  (SQLAlchemy Models)   │  │ (Async TTL Cleaner)   │  │
+│  └────────────────────────┘  └───────────────────────┘  │
+└────────────────────────────┬────────────────────────────┘
+                             │ HTTPS API Key
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│        Google Gemini Vision & Editing Pipeline          │
+│         (Identity-Preserving Inpainting AI)             │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📂 Repository File Structure
 
 ```
 stylemirror/
-├── android/                   # Android native platform configuration & permissions
-├── ios/                       # iOS native configuration & camera entitlements
-├── macos/                     # macOS desktop configuration & network entitlements
-├── windows/                   # Windows desktop configuration
-├── lib/                       # Flutter Application
+├── android/                         # Android native project & Gradle Kotlin DSL build files
+├── ios/                             # iOS native project, CocoaPods & camera permissions
+├── macos/                           # macOS desktop application runner
+├── windows/                         # Windows native desktop C++ runner & CMake configs
+├── lib/                             # Core Flutter application source code (Dart)
 │   ├── core/
-│   │   ├── constants/         # API endpoints & timeout settings
-│   │   └── theme/             # Dark luxury barber theme
-│   ├── data/                  # Built-in 50 style catalog data
-│   ├── models/                # Style, Photo, and Generation data models
+│   │   ├── constants/               # API endpoints, network timeouts, error codes
+│   │   └── theme/                   # Master AppTheme with dark/light palettes
+│   ├── data/
+│   │   ├── grooming_guide_data.dart # 4 deep-dive barber articles & tips
+│   │   └── style_catalog_data.dart  # 50 styles (25 haircuts + 25 beards) with prompts
+│   ├── models/
+│   │   ├── face_profile_model.dart  # 6 face shapes, biometric attributes & recommendations
+│   │   ├── grooming_guide_model.dart# Article data models & metadata
+│   │   ├── generation_model.dart    # Virtual try-on job state & results
+│   │   ├── photo_model.dart         # Uploaded photo & face validation issue models
+│   │   └── style_model.dart         # Style metadata, categories & prompt hints
 │   ├── screens/
-│   │   ├── home_screen.dart   # 3-step Try-On flow (Selfie -> Choose -> Result)
-│   │   ├── catalog_screen.dart# 50 styles explorer with barber prompt details
-│   │   └── privacy_screen.dart# Data privacy & security commitments
+│   │   ├── dashboard_screen.dart    # Screen 4: Home Dashboard & Face Profile Card
+│   │   ├── explorer_screen.dart     # Screens 6 & 7: Hairstyle & Beard Style Explorer
+│   │   ├── home_screen.dart         # Screens 8 & 9: Virtual Try-On Studio & Slider
+│   │   ├── my_styles_screen.dart    # Screens 10 & 12: My Styles Vault & Barber Card
+│   │   ├── profile_screen.dart      # Screens 11 & 13: Profile, Guide & Settings
+│   │   ├── catalog_screen.dart      # Classic catalog explorer view
+│   │   └── privacy_screen.dart      # Legal, data privacy & instant wipe screen
 │   ├── services/
-│   │   └── api_service.dart   # HTTP client + offline demo fallback
+│   │   ├── api_service.dart         # HTTP REST client + offline fallback provider
+│   │   └── backend_launcher.dart    # Desktop background daemon launcher
 │   ├── widgets/
-│   │   ├── before_after_slider.dart # Interactive comparison slider
-│   │   ├── consent_dialog.dart      # Mandatory legal & processing consent
-│   │   ├── step_indicator.dart      # 3-step navigation indicator
-│   │   └── style_card.dart          # Luminous style selector card
-│   └── main.dart              # App entry point & navigation scaffold
-├── test/                      # Flutter Unit & Widget Test Suite (15 tests)
-├── backend/                   # FastAPI Backend (No Docker)
+│   │   ├── auth_dialog.dart         # Screen 3: Email/Password & Google auth modal
+│   │   ├── before_after_slider.dart # Interactive split comparison slider
+│   │   ├── consent_dialog.dart      # Mandatory biometric consent dialog
+│   │   ├── face_analysis_dialog.dart# Screen 5: Frontal camera reticle & analysis
+│   │   ├── onboarding_dialog.dart   # Screen 2: 3-step visual onboarding carousel
+│   │   ├── step_indicator.dart      # 3-step navigation progress indicator
+│   │   └── style_card.dart          # High-fidelity style selection card
+│   └── main.dart                    # App bootstrap, 5-tab NavigationBar & theme provider
+├── test/                            # Flutter Automated Test Suite (22 tests)
+│   ├── api_service_test.dart        # End-to-end API client & mock lifecycle tests
+│   ├── backend_launcher_test.dart   # Background launcher safety tests
+│   ├── models_test.dart             # JSON serialization & validation tests
+│   ├── style_catalog_test.dart      # Catalog uniqueness, images & prompt tests
+│   └── widget_test.dart             # Widget tests for 5-tab navigation & screens
+├── backend/                         # Python FastAPI REST Backend (No Docker required)
 │   ├── app/
-│   │   ├── ai/                # Base provider, Gemini, and Mock implementations
-│   │   ├── routers/           # /v1/styles, /photos, /generations, /files, /suggestions, /looks
-│   │   ├── services/          # KeyPool, Face check, Storage, and 24h Cleanup
-│   │   ├── config.py          # Environment settings
-│   │   ├── db.py              # SQLite engine & session
-│   │   ├── models.py          # SQLAlchemy models
-│   │   └── main.py            # FastAPI entry point
+│   │   ├── ai/                      # Base AI provider, Gemini Vision, and mock engine
+│   │   ├── routers/                 # API endpoints (/styles, /photos, /generations, etc.)
+│   │   ├── services/                # OpenCV face check, KeyPool rotation, 24h purge
+│   │   ├── config.py                # Pydantic v2 environment configuration
+│   │   ├── db.py                    # SQLAlchemy SQLite engine & session management
+│   │   ├── models.py                # Database entity models
+│   │   ├── schemas.py               # Pydantic v2 request/response schemas
+│   │   └── main.py                  # FastAPI application entry point & CORS
 │   ├── scripts/
-│   │   ├── seed_styles.py     # SQLite catalog seeder script
-│   │   └── crop_sheet.py      # Reference collage cropper script
-│   ├── tests/                 # Backend Pytest Suite (15 tests)
-│   ├── requirements.txt       # Python dependencies
-│   └── .env.example           # Environment template
-└── docs/                      # Complete specifications & architectural design
+│   │   ├── seed_styles.py           # SQLite styles database seeder
+│   │   └── crop_sheet.py            # Reference portrait cropper utility
+│   ├── tests/                       # Pytest Backend Test Suite (15 tests)
+│   │   ├── test_generations.py      # Generation workflow & parameters
+│   │   ├── test_keys.py             # KeyPool rotation & quota fallback
+│   │   ├── test_photos.py           # Photo upload validation & instant wipe
+│   │   ├── test_storage_cleanup.py  # 24-hour TTL automated purge
+│   │   ├── test_styles.py           # Catalog querying and filtering
+│   │   └── test_suggestions_looks.py# Face-shape recommendation matrix
+│   ├── requirements.txt             # Python backend dependencies
+│   └── .env.example                 # Environment configuration template
+├── docs/                            # Deep-dive design, API & QA specifications
+├── run.bat                          # 1-click Windows Command Prompt launcher
+└── run.ps1                          # 1-click PowerShell full-stack runner
 ```
 
 ---
 
-## 🛠️ Quickstart Guide (Zero-Configuration All-In-One Execution)
+## 🚀 Automated Full-Stack Launch (Zero-Config)
 
-You **do not need to start the backend separately**! StyleMirror includes automated full-stack coordination across all run modes:
+You **never need to run the backend separately**. StyleMirror includes automated full-stack coordination across all operating modes:
 
-### Option 1: 1-Click All-in-One Runner (Recommended)
-
-Simply run `run.bat` or `run.ps1`:
-```bash
-# Windows Command Prompt
-run.bat
-
-# Or PowerShell
+### Option 1: 1-Click Runner (Windows CMD or PowerShell)
+Double-click `run.bat` or execute in PowerShell:
+```powershell
 .\run.ps1
 ```
-*Automatically checks port 8000, starts the FastAPI backend in the background if needed, and launches the Flutter application.*
+*Automatically validates Python, checks port 8000, launches FastAPI in the background if inactive, and boots the Flutter application.*
 
-### Option 2: Run via VS Code / IDE (Press `F5`)
-Open the project in VS Code / Antigravity IDE, select **"StyleMirror (App + Backend)"**, and press **F5**.
-The configured `preLaunchTask` in `.vscode/launch.json` automatically boots the backend and attaches the Flutter debugger.
+### Option 2: Run via VS Code / Antigravity IDE (`F5`)
+1. Open the project folder in VS Code or Antigravity IDE.
+2. Select **"StyleMirror (App + Backend)"** from the Run & Debug menu.
+3. Press **F5**. The configured `preLaunchTask` in `.vscode/launch.json` automatically boots the backend and attaches the Flutter debugger.
 
-### Option 3: Standard `flutter run`
+### Option 3: Standard Flutter CLI
 ```bash
-# Launch on Windows Desktop, Android, iOS, or macOS:
 flutter run
 ```
-- **On Desktop (Windows/macOS/Linux)**: [`BackendLauncher`](lib/services/backend_launcher.dart) in `main.dart` detects if port 8000 is open; if not, it automatically spawns the Python backend in the background.
-- **On Android**: The host Gradle build task in `android/app/build.gradle.kts` automatically verifies and spawns the Python backend on the host machine before launching the emulator/device, accessible via `http://10.0.2.2:8000`.
+* On Windows, macOS, and Linux desktop builds, [`BackendLauncher`](lib/services/backend_launcher.dart) detects if port 8000 is open; if not, it automatically spawns the Python backend process.
+* On Android, the custom Gradle task in `android/app/build.gradle.kts` verifies the host machine's Python backend before device launch, routing API traffic through `http://10.0.2.2:8000`.
 
 ---
 
-### Manual Backend Launch (Optional)
+## 🧪 Automated Testing & Verification Suite
 
-If you ever wish to inspect FastAPI interactive documentation (`/docs`) or run backend tests directly:
+StyleMirror is backed by a multi-layer automated testing suite with **100% pass rate** across all layers:
 
+### 1. Flutter Test Suite (`22 / 22 Passed`)
+Execute via:
 ```bash
-cd backend
-python -m pip install -r requirements.txt
-python scripts/seed_styles.py
-python -m uvicorn app.main:app --reload --port 8000
+flutter test
 ```
-- Interactive API Docs: `http://localhost:8000/docs`
-- Healthcheck: `http://localhost:8000/health`
+* **`test/widget_test.dart`**: Verifies 5-tab `NavigationBar` navigation, Dashboard elements, `ExplorerScreen` hairstyle/beard tab switching, `TryOn` selfie capture navigation, `MyStyles` vault tabs, `Profile` grooming guide, `StepIndicator` state transitions, and `BeforeAfterSlider` drag modes.
+* **`test/style_catalog_test.dart`**: Verifies exact 50-style catalog count (25 haircuts + 25 beards), ID uniqueness (`H01`–`H25`, `B01`–`B25`), valid category assignments, non-empty prompt hints, and verifies that every single style asset image exists on disk.
+* **`test/api_service_test.dart`**: Tests API service client lifecycle, upload photo validation error handling, generation polling lifecycle, and photo deletion.
+* **`test/models_test.dart`**: Tests JSON serialization and deserialization of `StyleModel`, `PhotoModel`, `GenerationModel`, and `FaceProfile`.
+* **`test/backend_launcher_test.dart`**: Tests health check socket probing and safe background process spawning.
 
----
-
-## 🧪 Automated Testing
-
-### Flutter Test Suite (`15 passed`):
-```bash
-flutter test --no-pub
-```
-- `test/style_catalog_test.dart`: Validates all 25 hairstyles + 25 beards, uniqueness of IDs, categories, and prompt hints.
-- `test/models_test.dart`: Serialization/deserialization for Style, Photo, and Generation models, plus issue message formatting.
-- `test/api_service_test.dart`: End-to-end service mock/network flow, error simulation, generation lifecycle, and deletion.
-- `test/widget_test.dart`: UI widget test for `StyleMirrorApp`, `StepIndicator`, and interactive `BeforeAfterSlider`.
-
-### Backend Pytest Suite (`15 passed`):
+### 2. Python Backend Pytest Suite (`15 / 15 Passed`)
+Execute via:
 ```bash
 python -m pytest backend/tests
 ```
-- `test_styles.py`: Full catalog and filtered queries (`type=hair`, `type=beard`).
-- `test_photos.py`: Upload validation, error rejection (too small, invalid format), and immediate permanent deletion.
-- `test_generations.py`: Generation creation, combination caching, polling status, and parameter validation.
-- `test_keys.py`: `KeyPool` rotation, 429 quota skipping, and invalid key masking.
-- `test_storage_cleanup.py`: 24-hour TTL automated purge.
-- `test_suggestions_looks.py`: Face-shape recommendation matrix and saved look bookmarking.
+* **`test_photos.py`**: Tests photo upload validation, OpenCV rejection of photos without faces, and immediate permanent deletion.
+* **`test_styles.py`**: Tests full catalog querying and filtering by `type=hair` and `type=beard`.
+* **`test_generations.py`**: Tests generation creation, parameter validation, asynchronous job polling, and combination caching.
+* **`test_keys.py`**: Tests `KeyPool` round-robin rotation, 429 quota exhaustion skipping, and secret key masking.
+* **`test_storage_cleanup.py`**: Tests the 24-hour TTL automated purge job removing expired photos and records.
+* **`test_suggestions_looks.py`**: Tests face-shape recommendation matrix and saved look bookmarking.
+
+### 3. Static Analysis
+Execute via:
+```bash
+flutter analyze
+```
+* Result: **`No issues found!`** (Zero errors, zero warnings, zero deprecation issues).
 
 ---
 
-## 🔒 Security & Privacy Commitments
-- **Zero AI Training**: Raw selfies are processed in-memory solely for rendering the preview and are never used to train or fine-tune models.
-- **24-Hour TTL**: Automated purge removes all expired records and assets.
-- **Server-Side Secrets**: Gemini API keys live exclusively in server-side environment variables and are never transmitted to clients.
+## 🔒 Security, Privacy & Data Retention
+
+* **Zero AI Model Training**: User selfies are processed in-memory solely for rendering the requested haircut/beard preview. User images are **never stored permanently or used to train, fine-tune, or evaluate AI models**.
+* **24-Hour TTL Auto-Purge**: All uploaded selfies, intermediate crops, and generated transformation outputs are tagged with a 24-hour expiration timestamp. An asynchronous background worker permanently purges expired files and database records.
+* **Instant Manual Wipe**: Users have continuous access to the **"Instant Wipe"** button, which immediately triggers `DELETE /v1/photos/{id}`, wiping the selfie and all derived generations from disk and database in a single atomic transaction.
+* **Server-Side API Keys**: Google Gemini API keys live exclusively within server-side `.env` files and environment variables. Keys are never embedded into client code or transmitted over the wire.
+* **Full Compliance**: Architected in accordance with DPDP (Digital Personal Data Protection) and GDPR privacy requirements.

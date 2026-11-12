@@ -1,80 +1,91 @@
-# 07 — Frontend (HTML + CSS + JavaScript)
+# 07 — Frontend Architecture (Flutter & Dart)
 
-No framework, no bundler, no build step. Plain ES modules served as static files by FastAPI (or any static host).
+StyleMirror is built as a cross-platform mobile and desktop application using **Flutter 3.x and Dart 3.x**. It delivers a high-performance native user experience across Android, iOS, Windows, macOS, Linux, and Web.
 
-## Pages
-| File | Content |
-|---|---|
-| `index.html` | Landing: hero, before/after demo, how it works, FAQ, "Try Now" |
-| `try.html` | Single page with 3 steps: Upload → Style → Result |
-| `privacy.html`, `terms.html` | Legal |
-| (P2) `looks.html`, `share.html` | Saved / shared looks |
+---
 
-## JS Modules (`frontend/js/`)
-| Module | Responsibility |
-|---|---|
-| `api.js` | `fetch` wrapper for all endpoints, error mapping |
-| `state.js` | Simple store object: `photoId`, `hairId`, `beardId`, `results[]` |
-| `uploader.js` | Drag-drop, file picker, webcam (`getUserMedia`), client-side compress to ≤ 1600 px via `<canvas>` |
-| `styleGrid.js` | Renders 25 hair + 25 beard cards, tabs, search, selection |
-| `progress.js` | Generation progress text + polling loop |
-| `slider.js` | Before/after comparison slider |
-| `main.js` | Step navigation, wiring, consent check, delete button |
+## 🧭 Navigation Architecture
 
-## Sections in `try.html`
-1. **Consent + tips:** checkboxes "This is my own photo" and "I agree to photo processing" (required).
-2. **Uploader:** preview, retake, validation messages.
-3. **Style picker:** tabs Hairstyles / Beards, grid of cards, sticky bottom bar showing chosen hair + beard and a **Generate** button.
-4. **Result:** big image, before/after slider, buttons Download / Try another / Change hair / Change beard / Delete my photo.
+The application is structured around a persistent 5-destination bottom navigation bar:
 
-## Key Code Patterns
-
-**API wrapper (`api.js`)**
-```js
-const BASE = "/v1";
-async function request(path, options = {}) {
-  const res = await fetch(BASE + path, options);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data?.error?.message || "Request failed"), { code: data?.error?.code });
-  return data;
-}
-export const api = {
-  styles: (type) => request(`/styles?type=${type}`),
-  uploadPhoto: (file) => { const f = new FormData(); f.append("file", file); return request("/photos", { method: "POST", body: f }); },
-  generate: (body) => request("/generations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
-  job: (id) => request(`/generations/${id}`),
-  deletePhoto: (id) => request(`/photos/${id}`, { method: "DELETE" }),
-};
+```
+[ 🏠 Home ]  [ 🧭 Explore ]  [ ✨ Try On ]  [ 🔖 My Styles ]  [ 👤 Profile ]
 ```
 
-**Polling (`progress.js`)**
-```js
-export async function waitForJob(jobId, onStatus) {
-  while (true) {
-    const job = await api.job(jobId);
-    onStatus(job.status);
-    if (job.status === "done") return job.result_url;
-    if (job.status === "failed") throw new Error(job.error || "Generation failed");
-    await new Promise(r => setTimeout(r, 1500));
-  }
-}
+1. **Home (`DashboardScreen`)**: Hero dashboard with personalized greeting, My Face Profile card, quick try-on action banner, recommended hairstyles and beards by face shape, trending cuts, daily barber tip, and recent history.
+2. **Explore (`ExplorerScreen`)**: Dual-tab discovery hub featuring 25 Hairstyles across 10 categories and 25 Beard Styles across 11 categories, real-time search, face shape chips, and barber specs modal.
+3. **Try On (`HomeScreen`)**: AI Virtual Try-On studio with OpenCV face check, styling target selector (Hair, Beard, Both), customization controls, and tactile split comparison slider.
+4. **My Styles (`MyStylesScreen`)**: Saved look vault with 4 filter tabs (Virtual Previews, Hairstyles, Beard Styles, Favorites), compatibility badges, and exportable Barber Consultation Card.
+5. **Profile (`ProfileScreen`)**: Face analysis profile calibration, embedded Men's Grooming Knowledge Hub (4 barber articles), dynamic Dark/Light theme toggle, grooming reminders, and privacy commitments.
+
+---
+
+## 📱 Complete 13 Application Screens
+
+| Screen # | Screen Name | Implementation File | Key Features & User Interactions |
+|---|---|---|---|
+| **Screen 1** | **Splash Screen** | `lib/main.dart` | Obsidian background, glowing branding, initialization checks. |
+| **Screen 2** | **Onboarding Carousel** | `lib/widgets/onboarding_dialog.dart` | 3-step carousel: *Discover Hairstyles*, *Find Your Beard*, *Try Before You Choose*. |
+| **Screen 3** | **Authentication** | `lib/widgets/auth_dialog.dart` | Email/password login & registration, password visibility toggle, Google auth. |
+| **Screen 4** | **Home Dashboard** | `lib/screens/dashboard_screen.dart` | My Face Profile card, recommended haircuts & beards, trending cuts, daily tip. |
+| **Screen 5** | **Face Analysis** | `lib/widgets/face_analysis_dialog.dart`| Frontal camera reticle, lighting rules, 6 face shapes biometric detection. |
+| **Screen 6** | **Hairstyle Explorer** | `lib/screens/explorer_screen.dart` (Tab 1) | 25 hairstyles, 10 categories, search, face shape filter chips, barber specs. |
+| **Screen 7** | **Beard Style Explorer**| `lib/screens/explorer_screen.dart` (Tab 2) | 25 beards, 11 categories, search, trimming guidelines, try-on dispatch. |
+| **Screen 8** | **Try-On Studio** | `lib/screens/home_screen.dart` | OpenCV single face verification, styling target selector, preset models. |
+| **Screen 9** | **Visual Comparison** | `lib/widgets/before_after_slider.dart` | Dual-layer interactive split slider, side-by-side mode, original vs. styled. |
+| **Screen 10**| **My Styles Vault** | `lib/screens/my_styles_screen.dart` | 4 categorization tabs, compatibility percentages, favorite bookmarks. |
+| **Screen 11**| **Grooming Knowledge Hub**| `lib/screens/profile_screen.dart` | 4 barber-authored guides: hair routine, beard neckline, clay vs. pomade, beard itch. |
+| **Screen 12**| **Barber Consultation Card**| `lib/screens/my_styles_screen.dart` | Clipper guard numbers (#1.5 fade), scissor lengths, neckline contour specs. |
+| **Screen 13**| **Profile & Settings** | `lib/screens/profile_screen.dart` | Account info, dynamic Dark/Light theme switch, notifications, instant wipe. |
+
+---
+
+## 🎨 Visual Design System (`AppTheme`)
+
+The visual identity is defined in [`lib/core/theme/app_theme.dart`](../lib/core/theme/app_theme.dart):
+
+```dart
+// Master Palette Tokens
+static const Color background          = Color(0xFF101114); // Primary Obsidian
+static const Color secondaryBackground = Color(0xFF191B20); // Secondary Dark
+static const Color cardBackground      = Color(0xFF22252B); // Elevated Cards
+static const Color primaryAccent       = Color(0xFFB9A0FF); // Electric Lavender
+static const Color secondaryAccent     = Color(0xFFD4C5A5); // Champagne Gold
+static const Color primaryText         = Color(0xFFFFFFFF); // Pure White
+static const Color secondaryText       = Color(0xFFA1A1AA); // Muted Cool Grey
+static const Color success             = Color(0xFF4ADE80); // Emerald Green
+static const Color error               = Color(0xFFF87171); // Coral Red
 ```
 
-**Before/after slider (`slider.js`)** — two stacked `<img>`; the top one clipped with `clip-path: inset(0 X% 0 0)` driven by an `<input type="range">`.
+Both **Dark Theme** (default obsidian) and **Light Theme** variations are fully supported via the theme toggle in `ProfileScreen`.
 
-## Rules
-- **Never put an API key in any JS/HTML file.** All AI calls go through the Python backend.
-- Mobile-first CSS (flex/grid, `clamp()`, media queries). Test at 360 px width.
-- No bare spinners; always show text: Analyzing face → Styling → Finishing.
-- Show "Photo auto-deleted in 24 h" and the delete button at all times after upload.
-- Actionable errors, e.g. "Face not clearly visible — face the camera in daylight."
-- Accessibility: alt text, labels, keyboard focus, AA contrast, `prefers-reduced-motion`.
-- Disable **Generate** until a photo is validated and at least one style is chosen.
-- Use `loading="lazy"` on style thumbnails.
-- CSS: variables in `:root` for colors/spacing; split into `base.css`, `layout.css`, `components.css`.
+---
 
-## Design Direction
-Dark premium "barber shop" look: charcoal/navy background, one bright blue accent (like the reference sheets), large rounded image cards, subtle CSS transitions.
+## 🧩 Core Widgets & UI Components
 
-## Optional Analytics
-Plain `fetch` calls to `/v1/events` (or PostHog snippet): `upload_started`, `validation_failed`, `style_selected`, `generate_clicked`, `generation_done`, `download_clicked`, `photo_deleted`.
+### 1. `BeforeAfterSlider` (`lib/widgets/before_after_slider.dart`)
+* Interactive split-screen touch slider using `GestureDetector`.
+* Renders before and after layers with a central tactile drag divider.
+* Supports 4 comparison modes:
+  * `Split Slider`: Draggable divider revealing after layer over before layer.
+  * `Side-by-Side`: Dual adjacent card preview.
+  * `Original`: Full original selfie view.
+  * `Styled`: Full AI-transformed view.
+
+### 2. `FaceAnalysisDialog` (`lib/widgets/face_analysis_dialog.dart`)
+* Frontal camera capture and gallery upload guide.
+* Oval biometric positioning reticle.
+* Biometric scanning animation.
+* Real-time calculation and presentation of face shape (Oval, Round, Square, Rectangle, Diamond, Heart), jawline contours, proportions, and hairstyle compatibility.
+
+### 3. `StyleCard` (`lib/widgets/style_card.dart`)
+* Displays style thumbnail, name, barber ID (e.g. `H03`), and compatibility chip.
+* Elevated hover and selection animations with electric lavender borders.
+
+---
+
+## 🔄 State Management & API Integration
+
+* **Service Layer (`StyleMirrorApiService`)**: Manages HTTP calls to the Python backend with automatic offline fallback to built-in presets when the backend is offline.
+* **Navigation State Synchronization**: Selecting "Try This Style" anywhere in the app (Dashboard, Explorer, or My Styles) triggers `onStyleSelected`, automatically switching the active tab to the Try-On studio with the target look pre-loaded.
+* **Theme Switching**: Managed reactively at the root `StyleMirrorApp` level with `isDarkMode` state propagation.

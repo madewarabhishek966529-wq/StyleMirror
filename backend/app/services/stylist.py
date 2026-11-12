@@ -124,9 +124,9 @@ def apply_hairstyle_overlay(
     if not clean_id or clean_id in ("H00", "NONE"):
         return canvas
 
-    hair_file = HAIR_DIR / f"{clean_id}.jpg"
+    hair_file = HAIR_DIR / f"{clean_id}_front.jpg"
     if not hair_file.exists():
-        hair_file = HAIR_DIR / f"{clean_id}_front.jpg"
+        hair_file = HAIR_DIR / f"{clean_id}.jpg"
     if not hair_file.exists():
         logger.warning(f"Hairstyle file not found: {hair_file}")
         return canvas
@@ -234,9 +234,9 @@ def apply_beard_overlay(
     if not clean_id or clean_id in ("B00", "NONE"):
         return canvas
 
-    beard_file = BEARD_DIR / f"{clean_id}.jpg"
+    beard_file = BEARD_DIR / f"{clean_id}_front.jpg"
     if not beard_file.exists():
-        beard_file = BEARD_DIR / f"{clean_id}_front.jpg"
+        beard_file = BEARD_DIR / f"{clean_id}.jpg"
     if not beard_file.exists():
         logger.warning(f"Beard file not found: {beard_file}")
         return canvas

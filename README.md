@@ -234,27 +234,44 @@ Navigation Bar: [ Home ] [ Explore ] [ Try On ] [ My Styles ] [ Profile ]
 
 ## 🎨 Visual Design System & Color Palette
 
-StyleMirror adheres to an ultra-modern, masculine dark technology aesthetic inspired by premium barber salons and modern AI tools:
+StyleMirror features a professional, premium editorial aesthetic: **a high-end modern barbershop crossed with a clean modern SaaS product**. It defaults to an editorial light theme with an optional dark obsidian mode:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  #101114  │  #191B20  │  #22252B  │  #B9A0FF  │  #D4C5A5  │  #FFFFFF  │
-│  Primary  │ Secondary │   Card    │  Electric │ Champagne │  Primary  │
-│Background │Background │Background │  Lavender │Barber Gold│   Text    │
+│  #F7F5F0  │  #FFFFFF  │  #E7E2D9  │  #0F1B2D  │  #0F766E  │  #B5733A  │
+│Warm Ivory │Card White │1px Border │ Ink Navy  │Deep Emerald│  Copper   │
+│Background │  Surfaces │ Subtle Line│Primary Text│Primary Btn│Badges/Acc.│
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Light Editorial Theme (Primary Default)
 | Token Name | Hex Code | Purpose & Application |
 | :--- | :--- | :--- |
-| **Primary Background** | `#101114` | Deep obsidian backdrop for scaffolds, creating high visual contrast and battery efficiency on OLED displays. |
-| **Secondary Background** | `#191B20` | Subtle contrast surface for search bars, chips, and inner containers. |
-| **Card Background** | `#22252B` | Elevated card surfaces, bottom navigation bar, and dialog sheets with soft shadows. |
-| **Primary Accent** | `#B9A0FF` | Electric lavender used for primary buttons, active tab indicators, biometric badges, and highlights. |
-| **Secondary Accent** | `#D4C5A5` | Warm champagne barber gold used for secondary buttons, category chips, barber tips, and guide tags. |
-| **Primary Text** | `#FFFFFF` | Pure white typography for titles, primary headings, and selected states. |
-| **Secondary Text** | `#A1A1AA` | Cool muted grey for subtitles, reading times, descriptions, and inactive icons. |
-| **Success** | `#4ADE80` | Vibrant emerald green for biometric verification badges and compatibility tags. |
-| **Error / Danger** | `#F87171` | Warm red for face validation rejection alerts, warnings, and log out actions. |
+| **Warm Ivory Background** | `#F7F5F0` | Spacious, warm ivory backdrop for screens, editorial cards, and scaffolding. |
+| **Card White Surface** | `#FFFFFF` | Crisp white cards with 14px border radius and 1px border. |
+| **Subtle Border** | `#E7E2D9` | 1px border definition giving a sharp, tactile print feel without harshness. |
+| **Ink Navy (Primary Text)**| `#0F1B2D` | High-contrast editorial ink navy typography for titles and key metrics. |
+| **Slate (Secondary Text)** | `#5B6678` | Refined slate for subtitles, descriptions, helper hints, and timestamps. |
+| **Deep Emerald (Primary)** | `#0F766E` | Sophisticated barbershop emerald for primary buttons, active tabs, and sliders. |
+| **Copper (Secondary)** | `#B5733A` | Warm copper for compatibility badges, face match percentages, and highlights. |
+| **Success Green** | `#16A34A` | Clear green for OpenCV biometric verification checks and 100% face lock. |
+| **Error Red** | `#DC2626` | Clean red for multiple-faces warnings and immediate photo deletion actions. |
+
+### Dark Obsidian Theme (Optional Toggle)
+| Token Name | Hex Code | Purpose & Application |
+| :--- | :--- | :--- |
+| **Obsidian Background** | `#0B1220` | Deep obsidian navy for low-light environments and OLED displays. |
+| **Dark Card Surface** | `#131C2E` | Elevated dark cards with 1px border `#1E293B`. |
+| **Dark Text Primary** | `#F8FAFC` | Crisp white typography for high legibility. |
+| **Dark Text Secondary** | `#94A3B8` | Cool slate grey for secondary text. |
+| **Accents** | `#0F766E` & `#B5733A` | Consistent deep emerald and copper accents across both themes. |
+
+### Typography & Component Specifications
+* **Headings**: Editorial serif typography (Playfair Display / DM Serif styling) with generous line heights.
+* **Body / UI**: Clean, legible sans-serif (Inter style) with high contrast hierarchy.
+* **Shape & Elevation**: 14px border radius cards, 10px border radius buttons, soft diffuse shadows (`0 8px 24px rgba(15, 27, 45, 0.08)`).
+* **Icons**: Thin-line Lucide-style iconography with zero distracting emojis.
+* **Motion & Interactions**: Tactile emerald Before/After split slider, sliding comparison pills, sticky catalog try-on bar, and printable Barber Consultation Card.
 
 ---
 

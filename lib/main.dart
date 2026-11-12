@@ -29,7 +29,7 @@ class StyleMirrorApp extends StatefulWidget {
 }
 
 class _StyleMirrorAppState extends State<StyleMirrorApp> {
-  bool _isDarkMode = true;
+  bool _isDarkMode = false; // Default: Warm Ivory Editorial SaaS Barbershop
 
   void _toggleTheme() {
     setState(() => _isDarkMode = !_isDarkMode);
@@ -38,9 +38,11 @@ class _StyleMirrorAppState extends State<StyleMirrorApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'StyleMirror — AI Hairstyle & Beard Styling',
+      title: 'StyleMirror — AI Hairstyle & Beard Virtual Try-On',
       debugShowCheckedModeBanner: false,
-      theme: _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: MainNavigationScaffold(
         apiService: widget.apiService,
         onThemeToggle: _toggleTheme,
@@ -121,61 +123,71 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       ),
     ];
 
+    final isDark = widget.isDarkMode;
+    final navBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          backgroundColor: AppTheme.cardBackground,
-          indicatorColor: AppTheme.primaryAccent.withOpacity(0.2),
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            final isSelected = states.contains(WidgetState.selected);
-            return TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppTheme.primaryAccent : AppTheme.secondaryText,
-            );
-          }),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            final isSelected = states.contains(WidgetState.selected);
-            return IconThemeData(
-              size: 22,
-              color: isSelected ? AppTheme.primaryAccent : AppTheme.secondaryText,
-            );
-          }),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: navBg,
+          border: Border(top: BorderSide(color: borderColor, width: 1)),
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.explore_outlined),
-              selectedIcon: Icon(Icons.explore),
-              label: 'Explore',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.auto_awesome_outlined),
-              selectedIcon: Icon(Icons.auto_awesome),
-              label: 'Try On',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.bookmark_outline),
-              selectedIcon: Icon(Icons.bookmark),
-              label: 'My Styles',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+        child: NavigationBarTheme(
+          data: NavigationBarThemeData(
+            backgroundColor: navBg,
+            indicatorColor: AppTheme.deepEmerald.withOpacity(0.12),
+            labelTextStyle: WidgetStateProperty.resolveWith((states) {
+              final isSelected = states.contains(WidgetState.selected);
+              return TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppTheme.deepEmerald : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
+              );
+            }),
+            iconTheme: WidgetStateProperty.resolveWith((states) {
+              final isSelected = states.contains(WidgetState.selected);
+              return IconThemeData(
+                size: 22,
+                color: isSelected ? AppTheme.deepEmerald : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
+              );
+            }),
+          ),
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.explore_outlined),
+                selectedIcon: Icon(Icons.explore),
+                label: 'Explore',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.auto_awesome_outlined),
+                selectedIcon: Icon(Icons.auto_awesome),
+                label: 'Try On',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.bookmark_outline),
+                selectedIcon: Icon(Icons.bookmark),
+                label: 'My Styles',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
         ),
       ),
     );

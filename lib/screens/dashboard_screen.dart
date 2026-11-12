@@ -6,7 +6,8 @@ import '../models/style_model.dart';
 import '../widgets/face_analysis_dialog.dart';
 import '../widgets/style_card.dart';
 
-/// Screen 4: Home Dashboard — Personalized AI Grooming Dashboard
+/// Screen 1 & 4: Landing Page & Personalized Barbershop Dashboard
+/// Design System: Warm Ivory (#F7F5F0), Ink Navy (#0F1B2D), Deep Emerald (#0F766E), Copper (#B5733A)
 class DashboardScreen extends StatelessWidget {
   final FaceProfile faceProfile;
   final ValueChanged<FaceProfile> onProfileUpdated;
@@ -25,7 +26,13 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get recommendations matching current face shape
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
+    // Filter styles matching current face shape
     final recommendedHair = StyleCatalogData.hairstyles
         .where((s) => faceProfile.recommendedHairStyleIds.contains(s.id))
         .toList();
@@ -41,94 +48,122 @@ class DashboardScreen extends StatelessWidget {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: AppTheme.primaryAccent.withOpacity(0.18),
+                color: AppTheme.deepEmerald.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.content_cut, color: AppTheme.primaryAccent, size: 20),
+              child: const Icon(Icons.content_cut, color: AppTheme.deepEmerald, size: 20),
             ),
             const SizedBox(width: 10),
-            const Text('StyleMirror'),
+            Text(
+              'StyleMirror',
+              style: TextStyle(
+                fontFamily: 'serif',
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: primaryTextColor,
+              ),
+            ),
           ],
         ),
         actions: [
+          TextButton(
+            onPressed: onNavigateToExplore,
+            child: Text('Styles', style: TextStyle(color: secondaryTextColor, fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: onNavigateToTryOn,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            child: const Text('Try Now'),
+          ),
+          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.face_retouching_natural, color: AppTheme.primaryAccent),
+            icon: const Icon(Icons.face_retouching_natural, color: AppTheme.deepEmerald),
             tooltip: 'Analyze Face',
             onPressed: () => FaceAnalysisDialog.show(context, onProfileUpdated: onProfileUpdated),
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
+          Padding(
+            padding: const EdgeInsets.only(right: 14.0),
             child: CircleAvatar(
               radius: 16,
-              backgroundColor: AppTheme.cardBackground,
-              backgroundImage: AssetImage('assets/portraits/model_1.jpg'),
+              backgroundColor: cardBg,
+              backgroundImage: const AssetImage('assets/portraits/model_1.jpg'),
             ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Personalized Greeting
-            const Text(
-              'Good evening, Alex',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Your facial features are calibrated for precision styling.',
-              style: TextStyle(fontSize: 13, color: AppTheme.secondaryText),
-            ),
-            const SizedBox(height: 18),
-
-            // 2. My Face Profile Card (Critical Screen Component)
-            _buildFaceProfileCard(context),
-            const SizedBox(height: 20),
-
-            // 3. Quick Try-On Banner
-            _buildQuickTryOnBanner(),
+            // --- 1. HERO SECTION: "See the cut before you commit." ---
+            _buildHeroSection(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 24),
 
-            // 4. Recommended Hairstyles for Face Shape
+            // --- 2. 3-FEATURE VALUE ROW ---
+            _buildFeatureRow(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 24),
+
+            // --- 3. 3-STEP "HOW IT WORKS" SEQUENCE ---
+            _buildHowItWorks(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 28),
+
+            // --- 4. MY FACE PROFILE CARD (Critical Biometric Component) ---
+            _buildFaceProfileCard(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 20),
+
+            // --- 5. VIRTUAL TRY-ON STUDIO QUICK BANNER ---
+            _buildQuickTryOnBanner(primaryTextColor, secondaryTextColor),
+            const SizedBox(height: 28),
+
+            // --- 6. RECOMMENDED HAIRSTYLES FOR FACE SHAPE ---
             _buildSectionHeader(
               title: 'Recommended Hairstyles for ${faceProfile.faceShape} Face',
-              actionLabel: 'See All',
+              actionLabel: 'See All (25)',
+              primaryTextColor: primaryTextColor,
               onAction: onNavigateToExplore,
             ),
             const SizedBox(height: 12),
             _buildHorizontalStyleList(recommendedHair.isNotEmpty ? recommendedHair : popularHair),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // 5. Recommended Beard Styles for Face Shape
+            // --- 7. RECOMMENDED BEARD STYLES FOR FACE SHAPE ---
             _buildSectionHeader(
               title: 'Recommended Beard Styles',
-              actionLabel: 'See All',
+              actionLabel: 'See All (25)',
+              primaryTextColor: primaryTextColor,
               onAction: onNavigateToExplore,
             ),
             const SizedBox(height: 12),
             _buildHorizontalStyleList(recommendedBeard.isNotEmpty ? recommendedBeard : trendingBeards),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // 6. Popular Cuts & Trending Grooming
-            _buildSectionHeader(title: 'Trending Men\'s Barber Cuts', actionLabel: 'Explore (50)', onAction: onNavigateToExplore),
+            // --- 8. TRENDING MEN'S BARBER CUTS ---
+            _buildSectionHeader(
+              title: 'Trending Men\'s Barber Cuts',
+              actionLabel: 'Explore (50)',
+              primaryTextColor: primaryTextColor,
+              onAction: onNavigateToExplore,
+            ),
             const SizedBox(height: 12),
             _buildHorizontalStyleList(popularHair),
             const SizedBox(height: 24),
 
-            // 7. Daily Grooming Tip Card
-            _buildDailyGroomingTip(),
-            const SizedBox(height: 24),
+            // --- 9. BARBER TIP OF THE DAY ---
+            _buildDailyGroomingTip(primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 20),
 
-            // 8. Recent Style Transformation History
-            _buildRecentHistoryCard(),
+            // --- 10. RECENT SIMULATION HISTORY ---
+            _buildRecentHistoryCard(primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 32),
+
+            // --- 11. EDITORIAL FOOTER ---
+            _buildFooter(secondaryTextColor),
             const SizedBox(height: 24),
           ],
         ),
@@ -136,20 +171,278 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFaceProfileCard(BuildContext context) {
+  Widget _buildHeroSection(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.cardShadow],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Copper Subtitle Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.copper.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'HIGH-END BARBERSHOP AI STUDIO',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.copper,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Main Headline (Playfair / Serif style)
+          Text(
+            'See the cut before you commit.',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+              height: 1.2,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          Text(
+            'A clean modern SaaS virtual try-on crafted for men. Preview authentic haircuts and beards on your own face with precise barber clipper guard specs before visiting your barber.',
+            style: TextStyle(
+              fontSize: 13,
+              color: textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Hero Split Preview Card
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Image.asset(
+                        'assets/portraits/transform_before_1.jpg',
+                        height: 190,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Expanded(
+                      child: Image.asset(
+                        'assets/portraits/transform_after_1.jpg',
+                        height: 190,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.inkNavy.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text('BEFORE: Natural Cut', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.deepEmerald.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text('AFTER: Textured Crop (H03)', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: onNavigateToTryOn,
+                icon: const Icon(Icons.auto_awesome, size: 16),
+                label: const Text('Start Virtual Try-On'),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton(
+                onPressed: onNavigateToExplore,
+                child: const Text('Browse 50 Styles'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
+    return Row(
+      children: [
+        _buildFeatureItem(
+          icon: Icons.shield_outlined,
+          title: 'Identity Preserved',
+          desc: 'Bone structure & skin stay authentic',
+          cardBg: cardBg,
+          borderColor: borderColor,
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(width: 10),
+        _buildFeatureItem(
+          icon: Icons.content_cut,
+          title: '50 Barber Styles',
+          desc: 'Clipper guard numbers & lengths',
+          cardBg: cardBg,
+          borderColor: borderColor,
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(width: 10),
+        _buildFeatureItem(
+          icon: Icons.timer_outlined,
+          title: 'Auto-Delete in 24h',
+          desc: 'Zero AI training & instant wipe',
+          cardBg: cardBg,
+          borderColor: borderColor,
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required Color cardBg,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
+          boxShadow: const [AppTheme.subtleShadow],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: AppTheme.deepEmerald),
+            const SizedBox(height: 8),
+            Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
+            const SizedBox(height: 2),
+            Text(desc, style: TextStyle(fontSize: 10, color: textSecondary, height: 1.3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHowItWorks(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryAccent.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.subtleShadow],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'How It Works',
+                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.w700, color: textPrimary),
+              ),
+              const Text('3 SIMPLE STEPS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.copper)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStepItem('1', 'Upload', 'Frontal selfie with natural lighting', textPrimary, textSecondary),
+              const SizedBox(width: 8),
+              _buildStepItem('2', 'Choose', 'Pick from 25 cuts & 25 beards', textPrimary, textSecondary),
+              const SizedBox(width: 8),
+              _buildStepItem('3', 'Preview', 'Split comparison & barber specs', textPrimary, textSecondary),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStepItem(String step, String title, String desc, Color textPrimary, Color textSecondary) {
+    return Expanded(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppTheme.deepEmerald,
+              shape: BoxShape.circle,
+            ),
+            child: Text(step, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
+                const SizedBox(height: 2),
+                Text(desc, style: TextStyle(fontSize: 10, color: textSecondary, height: 1.3)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFaceProfileCard(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,12 +453,12 @@ class DashboardScreen extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryAccent.withOpacity(0.2),
+                      color: AppTheme.deepEmerald.withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.verified, color: AppTheme.primaryAccent, size: 16),
+                    child: const Icon(Icons.verified, color: AppTheme.deepEmerald, size: 14),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -173,7 +466,7 @@ class DashboardScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryAccent,
+                      color: AppTheme.deepEmerald,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -183,15 +476,15 @@ class DashboardScreen extends StatelessWidget {
                 onTap: () => FaceAnalysisDialog.show(context, onProfileUpdated: onProfileUpdated),
                 child: const Row(
                   children: [
-                    Icon(Icons.edit_outlined, size: 14, color: AppTheme.secondaryAccent),
+                    Icon(Icons.edit_outlined, size: 14, color: AppTheme.copper),
                     SizedBox(width: 4),
-                    Text('Re-Analyze', style: TextStyle(fontSize: 12, color: AppTheme.secondaryAccent, fontWeight: FontWeight.bold)),
+                    Text('Re-Analyze', style: TextStyle(fontSize: 12, color: AppTheme.copper, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               ClipRRect(
@@ -214,19 +507,19 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       '${faceProfile.faceShape} Face Shape',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${faceProfile.proportions} • ${faceProfile.jawline}',
-                      style: const TextStyle(fontSize: 11, color: AppTheme.secondaryText),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.success.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppTheme.success.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
                         '✓ Biometrics Active & Preserved',
@@ -243,19 +536,14 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickTryOnBanner() {
+  Widget _buildQuickTryOnBanner(Color textPrimary, Color textSecondary) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primaryAccent.withOpacity(0.22),
-            AppTheme.secondaryAccent.withOpacity(0.12),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.4)),
+        color: AppTheme.deepEmerald.withOpacity(0.06),
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: AppTheme.deepEmerald.withOpacity(0.24)),
       ),
       child: Row(
         children: [
@@ -263,14 +551,14 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Virtual AI Try-On Studio',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Simulate 25 haircuts & 25 beards on your face in real-time.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryText, height: 1.3),
+                Text(
+                  'Simulate 25 haircuts & 25 beards on your face in real-time with identity preservation.',
+                  style: TextStyle(fontSize: 12, color: textSecondary, height: 1.3),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
@@ -286,14 +574,14 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: SizedBox(
-              width: 90,
-              height: 110,
+              width: 86,
+              height: 104,
               child: Image.asset(
                 'assets/portraits/transform_after_1.jpg',
-                width: 90,
-                height: 110,
+                width: 86,
+                height: 104,
                 fit: BoxFit.cover,
               ),
             ),
@@ -303,22 +591,27 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader({required String title, required String actionLabel, required VoidCallback onAction}) {
+  Widget _buildSectionHeader({
+    required String title,
+    required String actionLabel,
+    required Color primaryTextColor,
+    required VoidCallback onAction,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor),
           ),
         ),
         TextButton(
           onPressed: onAction,
           child: Row(
             children: [
-              Text(actionLabel, style: const TextStyle(fontSize: 12, color: AppTheme.primaryAccent, fontWeight: FontWeight.w600)),
-              const Icon(Icons.chevron_right, size: 16, color: AppTheme.primaryAccent),
+              Text(actionLabel, style: const TextStyle(fontSize: 12, color: AppTheme.deepEmerald, fontWeight: FontWeight.w600)),
+              const Icon(Icons.chevron_right, size: 16, color: AppTheme.deepEmerald),
             ],
           ),
         ),
@@ -328,7 +621,7 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildHorizontalStyleList(List<StyleModel> styles) {
     return SizedBox(
-      height: 230,
+      height: 236,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: styles.length,
@@ -336,7 +629,7 @@ class DashboardScreen extends StatelessWidget {
         itemBuilder: (context, i) {
           final item = styles[i];
           return SizedBox(
-            width: 155,
+            width: 160,
             child: StyleCard(
               style: item,
               isSelected: false,
@@ -348,13 +641,14 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyGroomingTip() {
+  Widget _buildDailyGroomingTip(Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.subtleShadow],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,24 +656,24 @@ class DashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.secondaryAccent.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
+              color: AppTheme.copper.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.lightbulb_outline, color: AppTheme.secondaryAccent, size: 20),
+            child: const Icon(Icons.lightbulb_outline, color: AppTheme.copper, size: 20),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Barber Tip of the Day',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.secondaryAccent),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.copper),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Map your neckline 2 fingers above the Adam\'s apple. Trimming too high weakens jaw definition.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryText, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: textSecondary, height: 1.4),
                 ),
               ],
             ),
@@ -389,18 +683,19 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentHistoryCard() {
+  Widget _buildRecentHistoryCard(Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.secondaryBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.subtleShadow],
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
             child: SizedBox(
               width: 48,
               height: 48,
@@ -408,22 +703,40 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Recent Simulation', style: TextStyle(fontSize: 10, color: AppTheme.secondaryText, fontWeight: FontWeight.bold)),
-                Text('French Crop (H03) + Short Beard', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text('Yesterday, 8:45 PM • 95% Match', style: TextStyle(fontSize: 11, color: AppTheme.primaryAccent)),
+                Text('Recent Simulation', style: TextStyle(fontSize: 10, color: textSecondary, fontWeight: FontWeight.bold)),
+                Text('French Crop (H03) + Short Beard', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: textPrimary)),
+                const Text('Yesterday, 8:45 PM • 95% Match', style: TextStyle(fontSize: 11, color: AppTheme.deepEmerald, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             ),
             onPressed: onNavigateToTryOn,
             child: const Text('Reuse', style: TextStyle(fontSize: 11)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(Color textSecondary) {
+    return Center(
+      child: Column(
+        children: [
+          Text(
+            'StyleMirror • High-End AI Grooming Studio',
+            style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Identity preserved • 50 barber styles • 24-hour automated data purge',
+            style: TextStyle(fontSize: 10, color: textSecondary.withOpacity(0.8)),
           ),
         ],
       ),

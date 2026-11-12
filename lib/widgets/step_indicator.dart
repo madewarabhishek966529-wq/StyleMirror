@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 
-/// Clean 3-step navigation indicator for the Try-On flow
+/// Clean 3-step navigation indicator for the Try-On flow with Editorial Barbershop Styling
 class StepIndicator extends StatelessWidget {
-  final int currentStep; // 0: Selfie, 1: Choose Style, 2: Result
+  final int currentStep; // 0: Selfie, 1: Choose Look, 2: Try-On Studio
   final ValueChanged<int>? onStepTapped;
 
   const StepIndicator({
@@ -14,6 +14,12 @@ class StepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+
     const steps = [
       {'num': '1', 'title': 'Selfie'},
       {'num': '2', 'title': 'Choose Look'},
@@ -23,9 +29,10 @@ class StepIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.subtleShadow],
       ),
       child: Row(
         children: [
@@ -39,27 +46,27 @@ class StepIndicator extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 26,
-                      height: 26,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: i < currentStep
                             ? AppTheme.success
-                            : (i == currentStep ? AppTheme.primary : AppTheme.surfaceElevated),
+                            : (i == currentStep ? AppTheme.deepEmerald : (isDark ? AppTheme.darkBackground : AppTheme.ivoryBackground)),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: i == currentStep ? AppTheme.primaryLight : AppTheme.border,
+                          color: i == currentStep ? AppTheme.deepEmerald : borderColor,
                           width: 1,
                         ),
                       ),
                       child: Center(
                         child: i < currentStep
-                            ? const Icon(Icons.check, size: 14, color: Colors.white)
+                            ? const Icon(Icons.check, size: 13, color: Colors.white)
                             : Text(
                                 steps[i]['num']!,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: i == currentStep ? Colors.white : AppTheme.textMuted,
+                                  color: i == currentStep ? Colors.white : secondaryTextColor,
                                 ),
                               ),
                       ),
@@ -69,9 +76,9 @@ class StepIndicator extends StatelessWidget {
                       child: Text(
                         steps[i]['title']!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: i == currentStep ? FontWeight.w700 : FontWeight.w500,
-                          color: i == currentStep ? AppTheme.textPrimary : AppTheme.textMuted,
+                          color: i == currentStep ? primaryTextColor : secondaryTextColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -83,9 +90,9 @@ class StepIndicator extends StatelessWidget {
             ),
             if (i < steps.length - 1)
               Container(
-                width: 20,
+                width: 16,
                 height: 1,
-                color: i < currentStep ? AppTheme.success : AppTheme.border,
+                color: i < currentStep ? AppTheme.deepEmerald : borderColor,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
               ),
           ],
@@ -94,4 +101,3 @@ class StepIndicator extends StatelessWidget {
     );
   }
 }
-

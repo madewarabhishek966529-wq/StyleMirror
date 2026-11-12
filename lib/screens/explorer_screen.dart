@@ -6,6 +6,7 @@ import '../models/style_model.dart';
 import '../widgets/style_card.dart';
 
 /// Screen 6 & Screen 7: Hairstyle Explorer & Beard Style Explorer
+/// Design System: Warm Ivory background, Deep Emerald selection, Copper details, Sticky Bottom Bar
 class ExplorerScreen extends StatefulWidget {
   final FaceProfile faceProfile;
   final ValueChanged<StyleModel> onStyleSelected;
@@ -27,8 +28,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
   String _selectedFaceShapeFilter = 'All';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  StyleModel? _selectedStyle;
 
-  // 10 Hairstyle categories specified in prompt
   final List<String> _hairCategories = [
     'All',
     'Short Hairstyles',
@@ -43,7 +44,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
     'Modern Hairstyles',
   ];
 
-  // 11 Beard categories specified in prompt
   final List<String> _beardCategories = [
     'All',
     'Clean Shave',
@@ -83,13 +83,17 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
   }
 
   void _showStyleDetails(StyleModel style) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.cardBackground,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        side: BorderSide(color: AppTheme.border),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return Padding(
@@ -98,32 +102,39 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header Row: Style ID & Compatibility Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryAccent,
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppTheme.deepEmerald,
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       style.id,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.background),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.white),
                     ),
                   ),
-                  Chip(
-                    avatar: const Icon(Icons.verified, size: 14, color: AppTheme.success),
-                    label: Text(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.copper.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
                       style.isHair ? 'Compatible: Oval, Square, Round' : 'Compatible: All Face Shapes',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.copper),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
+
+              // Large Reference Image
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 child: SizedBox(
                   height: 200,
                   width: double.infinity,
@@ -135,41 +146,47 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
                 ),
               ),
               const SizedBox(height: 14),
+
+              // Style Name
               Text(
                 style.name,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: primaryTextColor),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 style.promptHint,
-                style: const TextStyle(fontSize: 13, color: AppTheme.secondaryText, height: 1.4),
+                style: TextStyle(fontSize: 13, color: secondaryTextColor, height: 1.4),
               ),
               const SizedBox(height: 16),
 
-              // Specifications & Barber Guard Guidance
+              // Barber Consultation Specs Box
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.border),
+                  color: isDark ? AppTheme.darkBackground : AppTheme.ivoryBackground,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderIvory),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Barber Consultation Specs:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.secondaryAccent)),
-                    const SizedBox(height: 4),
+                    const Text(
+                      'Barber Consultation Specifications:',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.copper),
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       style.isHair
-                          ? '• Side Guard: #1.5 to #2 Fade Transition\n• Top Length: 1.5–2 inches textured scissor cut\n• Styling Product: Matte styling clay with pliable hold'
+                          ? '• Side Clipper Guard: #1.5 to #2 Fade Transition\n• Top Texture: 1.5–2 inches textured scissor cut\n• Styling Product: Matte styling clay with pliable hold'
                           : '• Baseline Length: 4mm–8mm trimmer guard\n• Cheek Line: Sculpted diagonal to corner of mouth\n• Hydration: 3 drops cedarwood beard oil daily',
-                      style: const TextStyle(fontSize: 11, color: AppTheme.secondaryText, height: 1.5),
+                      style: TextStyle(fontSize: 11, color: secondaryTextColor, height: 1.5),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
+              // Try This Style Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -177,7 +194,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
                     Navigator.pop(ctx);
                     widget.onStyleSelected(style);
                   },
-                  icon: const Icon(Icons.auto_awesome),
+                  icon: const Icon(Icons.auto_awesome, size: 16),
                   label: Text('Try This ${style.isHair ? 'Hairstyle' : 'Beard Style'} in Studio'),
                 ),
               ),
@@ -190,6 +207,12 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     final query = _searchQuery.toLowerCase();
 
     // Filter Hairstyles
@@ -210,7 +233,27 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Style Explorer'),
+        title: Row(
+          children: [
+            Text(
+              'Style Explorer',
+              style: TextStyle(fontFamily: 'serif', fontSize: 20, fontWeight: FontWeight.bold, color: primaryTextColor),
+            ),
+            const Spacer(),
+            // Pinned User Portrait Thumbnail in Header
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.deepEmerald, width: 1.5),
+                shape: BoxShape.circle,
+              ),
+              child: const CircleAvatar(
+                radius: 14,
+                backgroundImage: AssetImage('assets/portraits/model_1.jpg'),
+              ),
+            ),
+          ],
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -269,24 +312,79 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
             child: TabBarView(
               controller: _tabController,
               children: [
-                // 1. Hairstyle Explorer Tab
                 _buildExplorerGrid(
                   styles: filteredHair,
                   categories: _hairCategories,
                   selectedCategory: _hairCategory,
                   onCategoryChanged: (cat) => setState(() => _hairCategory = cat),
+                  primaryTextColor: primaryTextColor,
+                  secondaryTextColor: secondaryTextColor,
                 ),
-
-                // 2. Beard Style Explorer Tab
                 _buildExplorerGrid(
                   styles: filteredBeard,
                   categories: _beardCategories,
                   selectedCategory: _beardCategory,
                   onCategoryChanged: (cat) => setState(() => _beardCategory = cat),
+                  primaryTextColor: primaryTextColor,
+                  secondaryTextColor: secondaryTextColor,
                 ),
               ],
             ),
           ),
+
+          // Sticky "Generate Preview" Bottom Bar when style is selected
+          if (_selectedStyle != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: cardBg,
+                border: Border(top: BorderSide(color: borderColor, width: 1)),
+                boxShadow: const [AppTheme.cardShadow],
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.asset(
+                        _selectedStyle!.assetPath,
+                        width: 38,
+                        height: 38,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _selectedStyle!.name,
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTextColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${_selectedStyle!.id} • ${_selectedStyle!.category}',
+                            style: TextStyle(fontSize: 10, color: secondaryTextColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton.icon(
+                      onPressed: () => widget.onStyleSelected(_selectedStyle!),
+                      icon: const Icon(Icons.auto_awesome, size: 14),
+                      label: const Text('Generate Preview', style: TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -297,6 +395,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
     required List<String> categories,
     required String selectedCategory,
     required ValueChanged<String> onCategoryChanged,
+    required Color primaryTextColor,
+    required Color secondaryTextColor,
   }) {
     return Column(
       children: [
@@ -323,8 +423,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
         // Grid
         Expanded(
           child: styles.isEmpty
-              ? const Center(
-                  child: Text('No styles match your search.', style: TextStyle(color: AppTheme.secondaryText)),
+              ? Center(
+                  child: Text('No styles match your search.', style: TextStyle(color: secondaryTextColor)),
                 )
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
@@ -337,10 +437,22 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
                   itemCount: styles.length,
                   itemBuilder: (context, i) {
                     final item = styles[i];
-                    return StyleCard(
-                      style: item,
-                      isSelected: false,
-                      onSelect: () => _showStyleDetails(item),
+                    final isSel = _selectedStyle?.id == item.id;
+                    return GestureDetector(
+                      onDoubleTap: () => _showStyleDetails(item),
+                      child: StyleCard(
+                        style: item,
+                        isSelected: isSel,
+                        onSelect: () {
+                          setState(() {
+                            if (_selectedStyle?.id == item.id) {
+                              _selectedStyle = null;
+                            } else {
+                              _selectedStyle = item;
+                            }
+                          });
+                        },
+                      ),
                     );
                   },
                 ),
@@ -349,4 +461,3 @@ class _ExplorerScreenState extends State<ExplorerScreen> with SingleTickerProvid
     );
   }
 }
-

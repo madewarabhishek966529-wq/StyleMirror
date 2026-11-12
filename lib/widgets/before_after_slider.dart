@@ -10,6 +10,7 @@ enum ComparisonMode {
 }
 
 /// Interactive Before & After comparison widget for Hair and Beard try-on
+/// Design System: Tactile Emerald handle, Sliding Mode Pills, 14px Card Container
 class BeforeAfterSlider extends StatefulWidget {
   final Widget beforeWidget;
   final Widget afterWidget;
@@ -22,21 +23,20 @@ class BeforeAfterSlider extends StatefulWidget {
     super.key,
     required this.beforeWidget,
     required this.afterWidget,
-    this.beforeLabel = 'ORIGINAL',
-    this.afterLabel = 'STYLE PREVIEW',
+    this.beforeLabel = 'BEFORE',
+    this.afterLabel = 'AFTER',
     this.initialPosition = 0.5,
     this.height,
   });
 
-  /// Factory helper for creating slider from Uint8List memory bytes or fallback widgets
   factory BeforeAfterSlider.fromBytes({
     Key? key,
     required Uint8List? beforeBytes,
     required Uint8List? afterBytes,
     required Widget fallbackBefore,
     required Widget fallbackAfter,
-    String beforeLabel = 'ORIGINAL',
-    String afterLabel = 'STYLE PREVIEW',
+    String beforeLabel = 'BEFORE',
+    String afterLabel = 'AFTER',
     double? height,
   }) {
     return BeforeAfterSlider(
@@ -58,55 +58,61 @@ class BeforeAfterSlider extends StatefulWidget {
 }
 
 class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
-  late double _dividerPosition;
+  late double _position; // 0.0 to 1.0
   ComparisonMode _mode = ComparisonMode.slider;
 
   @override
   void initState() {
     super.initState();
-    _dividerPosition = widget.initialPosition;
+    _position = widget.initialPosition;
   }
 
-  void _updatePosition(double globalDx, double width) {
+  void _onPanUpdate(DragUpdateDetails details, double width) {
+    if (width <= 0) return;
     setState(() {
-      _dividerPosition = (globalDx / width).clamp(0.01, 0.99);
+      _position = (_position + details.delta.dx / width).clamp(0.0, 1.0);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final height = widget.height ?? 380.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Mode selector chips
-        Padding(
+        // Mode Selector Pills
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.only(bottom: 12),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildModeChip('Split Slider', ComparisonMode.slider, Icons.compare),
-                const SizedBox(width: 8),
-                _buildModeChip('Side-by-Side', ComparisonMode.sideBySide, Icons.view_column),
-                const SizedBox(width: 8),
-                _buildModeChip('Original', ComparisonMode.originalOnly, Icons.person),
-                const SizedBox(width: 8),
-                _buildModeChip('Styled', ComparisonMode.styledOnly, Icons.auto_awesome),
-              ],
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildModeChip('Split Slider', ComparisonMode.slider, Icons.tune_rounded),
+              const SizedBox(width: 8),
+              _buildModeChip('Side-by-Side', ComparisonMode.sideBySide, Icons.view_column_rounded),
+              const SizedBox(width: 8),
+              _buildModeChip('Original', ComparisonMode.originalOnly, Icons.person_outline),
+              const SizedBox(width: 8),
+              _buildModeChip('Styled', ComparisonMode.styledOnly, Icons.auto_awesome_outlined),
+            ],
           ),
         ),
 
-        // Main preview container
+        // Main Viewer Frame (14px radius, 1px border, soft shadow)
         ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
           child: Container(
-            height: widget.height ?? 380,
+            height: height,
             decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.border, width: 1.5),
+              color: cardBg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: borderColor),
+              boxShadow: const [AppTheme.cardShadow],
             ),
             child: _buildComparisonContent(),
           ),
@@ -117,34 +123,42 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
 
   Widget _buildModeChip(String label, ComparisonMode mode, IconData icon) {
     final isSelected = _mode == mode;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => setState(() => _mode = mode),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        curve: const Cubic(0.22, 1, 0.36, 1),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : AppTheme.surfaceElevated,
+          color: isSelected
+              ? AppTheme.deepEmerald
+              : (isDark ? AppTheme.darkCard : AppTheme.cardWhite),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryLight : AppTheme.border,
+            color: isSelected
+                ? AppTheme.deepEmerald
+                : (isDark ? AppTheme.darkBorder : AppTheme.borderIvory),
             width: 1,
           ),
+          boxShadow: isSelected ? const [AppTheme.subtleShadow] : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 14,
-              color: isSelected ? Colors.white : AppTheme.textSecondary,
+              size: 13,
+              color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppTheme.textSecondary,
+                color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
               ),
             ),
           ],
@@ -183,7 +197,7 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
                 ],
               ),
             ),
-            Container(width: 2, color: AppTheme.border),
+            Container(width: 2, color: AppTheme.deepEmerald),
             Expanded(
               child: Stack(
                 fit: StackFit.expand,
@@ -200,42 +214,35 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final height = constraints.maxHeight;
-            final splitDx = width * _dividerPosition;
+            final splitDx = width * _position;
 
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onHorizontalDragUpdate: (details) {
-                final localX = details.localPosition.dx;
-                _updatePosition(localX, width);
-              },
-              onTapDown: (details) {
-                final localX = details.localPosition.dx;
-                _updatePosition(localX, width);
-              },
+              onHorizontalDragUpdate: (details) => _onPanUpdate(details, width),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Full Styled After Image (Base)
+                  // Layer 1: After Widget (Styled) in full width
                   widget.afterWidget,
 
-                  // Clipped Original Before Image (Top Layer)
+                  // Layer 2: Before Widget (Original) clipped to splitDx
                   ClipRect(
                     clipper: _LeftSplitClipper(splitDx),
                     child: widget.beforeWidget,
                   ),
 
-                  // Divider Line & Handle
+                  // Divider Line
                   Positioned(
                     left: splitDx - 1.5,
                     top: 0,
                     bottom: 0,
                     child: Container(
-                      width: 3,
+                      width: 3.0,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withOpacity(0.35),
                             blurRadius: 4,
                             spreadRadius: 1,
                           ),
@@ -244,20 +251,20 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
                     ),
                   ),
 
-                  // Grab Handle in center
+                  // Grab Handle in center (tactile circular button with emerald icon)
                   Positioned(
-                    left: splitDx - 18,
-                    top: (height / 2) - 18,
+                    left: splitDx - 17,
+                    top: (height / 2) - 17,
                     child: Container(
-                      width: 36,
-                      height: 36,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.primary, width: 2),
+                        border: Border.all(color: AppTheme.deepEmerald, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.35),
+                            color: Colors.black.withOpacity(0.25),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),
@@ -266,14 +273,14 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
                       child: const Center(
                         child: Icon(
                           Icons.swap_horiz_rounded,
-                          size: 22,
-                          color: AppTheme.primary,
+                          size: 20,
+                          color: AppTheme.deepEmerald,
                         ),
                       ),
                     ),
                   ),
 
-                  // Labels
+                  // Badges
                   _buildBadge(widget.beforeLabel, isLeft: true),
                   _buildBadge(widget.afterLabel, isLeft: false),
                 ],
@@ -290,20 +297,20 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
       left: isLeft ? 12 : null,
       right: isLeft ? null : 12,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(8),
+          color: AppTheme.inkNavy.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isLeft ? AppTheme.textSecondary.withOpacity(0.4) : AppTheme.primaryLight.withOpacity(0.6),
+            color: isLeft ? Colors.white24 : AppTheme.copper.withOpacity(0.7),
             width: 1,
           ),
         ),
         child: Text(
           text,
           style: TextStyle(
-            color: isLeft ? Colors.white70 : AppTheme.primaryLight,
-            fontSize: 10,
+            color: isLeft ? Colors.white70 : AppTheme.copper,
+            fontSize: 9.5,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
           ),

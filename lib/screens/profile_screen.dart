@@ -28,13 +28,19 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   void _openArticleDetails(GroomingArticle article) {
+    final isDark = widget.isDarkMode;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.cardBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        side: BorderSide(color: AppTheme.border),
+      backgroundColor: cardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: borderColor),
       ),
       builder: (ctx) {
         return DraggableScrollableSheet(
@@ -55,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         avatar: Icon(
                           article.icon,
                           size: 14,
-                          color: AppTheme.primaryAccent,
+                          color: AppTheme.deepEmerald,
                         ),
                         label: Text(
                           article.category,
@@ -67,9 +73,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       Text(
                         article.readTime,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.secondaryText,
+                          color: secondaryTextColor,
                         ),
                       ),
                     ],
@@ -77,18 +83,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 12),
                   Text(
                     article.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     article.summary,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppTheme.secondaryText,
+                      color: secondaryTextColor,
                       height: 1.4,
                     ),
                   ),
@@ -99,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryAccent,
+                      color: AppTheme.copper,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -112,15 +118,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Icon(
                             Icons.check_circle,
                             size: 16,
-                            color: AppTheme.success,
+                            color: AppTheme.successGreen,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               tip,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white,
+                                color: primaryTextColor,
                                 height: 1.4,
                               ),
                             ),
@@ -130,20 +136,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Deep Dive Guide:',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     article.fullContent,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppTheme.secondaryText,
+                      color: secondaryTextColor,
                       height: 1.5,
                     ),
                   ),
@@ -158,6 +164,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDarkMode;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile & Grooming Guide')),
       body: SingleChildScrollView(
@@ -169,9 +181,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppTheme.cardBackground,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.border),
+                color: cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor),
+                boxShadow: const [AppTheme.cardShadow],
               ),
               child: Row(
                 children: [
@@ -184,20 +197,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Alex Vance',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: primaryTextColor,
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'alex.vance@example.com',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppTheme.secondaryText,
+                            color: secondaryTextColor,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -207,14 +220,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryAccent.withOpacity(0.18),
+                            color: AppTheme.deepEmerald.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
                             'StyleMirror Pro Member',
                             style: TextStyle(
                               fontSize: 10,
-                              color: AppTheme.primaryAccent,
+                              color: AppTheme.deepEmerald,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -231,9 +244,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.cardBackground,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: borderColor),
+                boxShadow: const [AppTheme.cardShadow],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,12 +255,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Face Analysis Profile',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: primaryTextColor,
                         ),
                       ),
                       TextButton(
@@ -257,8 +271,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: const Text(
                           'Update',
                           style: TextStyle(
-                            color: AppTheme.primaryAccent,
+                            color: AppTheme.deepEmerald,
                             fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -271,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         avatar: const Icon(
                           Icons.face,
                           size: 14,
-                          color: AppTheme.primaryAccent,
+                          color: AppTheme.deepEmerald,
                         ),
                         label: Text('${widget.faceProfile.faceShape} Shape'),
                       ),
@@ -280,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         avatar: const Icon(
                           Icons.architecture,
                           size: 14,
-                          color: AppTheme.secondaryAccent,
+                          color: AppTheme.copper,
                         ),
                         label: Text(
                           widget.faceProfile.jawline.split('&').first.trim(),
@@ -297,19 +312,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Men\'s Grooming Guide',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: primaryTextColor,
                   ),
                 ),
                 Text(
                   '${GroomingGuideData.articles.length} Articles',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppTheme.secondaryText,
+                    color: secondaryTextColor,
                   ),
                 ),
               ],
@@ -325,21 +340,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppTheme.cardBackground,
+                      color: cardBg,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppTheme.border),
+                      border: Border.all(color: borderColor),
+                      boxShadow: const [AppTheme.subtleShadow],
                     ),
                     child: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppTheme.secondaryBackground,
+                            color: AppTheme.deepEmerald.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             article.icon,
-                            color: AppTheme.primaryAccent,
+                            color: AppTheme.deepEmerald,
                             size: 20,
                           ),
                         ),
@@ -356,15 +372,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     article.category,
                                     style: const TextStyle(
                                       fontSize: 10,
-                                      color: AppTheme.secondaryAccent,
+                                      color: AppTheme.copper,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     article.readTime,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10,
-                                      color: AppTheme.secondaryText,
+                                      color: secondaryTextColor,
                                     ),
                                   ),
                                 ],
@@ -372,10 +388,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 article.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: primaryTextColor,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -383,18 +399,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 article.summary,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: AppTheme.secondaryText,
+                                  color: secondaryTextColor,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.chevron_right,
                           size: 18,
-                          color: AppTheme.secondaryText,
+                          color: secondaryTextColor,
                         ),
                       ],
                     ),
@@ -405,50 +421,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 20),
 
             // Settings & Privacy Controls
-            const Text(
+            Text(
               'Settings & Security',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: primaryTextColor,
               ),
             ),
             const SizedBox(height: 12),
 
             Material(
-              color: AppTheme.cardBackground,
+              color: cardBg,
               borderRadius: BorderRadius.circular(16),
               clipBehavior: Clip.antiAlias,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: borderColor),
+                  boxShadow: const [AppTheme.cardShadow],
                 ),
                 child: Column(
                   children: [
                     ListTile(
                       leading: const Icon(
                         Icons.shield_outlined,
-                        color: AppTheme.primaryAccent,
+                        color: AppTheme.deepEmerald,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Privacy & Security Commitments',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
                         ),
                       ),
-                      subtitle: const Text(
+                      subtitle: Text(
                         'Zero AI training, 24h purge & data deletion',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.secondaryText,
+                          color: secondaryTextColor,
                         ),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 14,
-                        color: AppTheme.secondaryText,
+                        color: secondaryTextColor,
                       ),
                       onTap: () {
                         Navigator.push(
@@ -459,69 +477,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                       },
                     ),
-                    const Divider(color: AppTheme.border, height: 1),
+                    Divider(color: borderColor, height: 1),
                     ListTile(
                       leading: const Icon(
                         Icons.dark_mode_outlined,
-                        color: AppTheme.secondaryAccent,
+                        color: AppTheme.copper,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Appearance',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
                         ),
                       ),
                       subtitle: Text(
                         widget.isDarkMode
-                            ? 'Dark Theme (Obsidian)'
-                            : 'Light Theme',
-                        style: const TextStyle(
+                            ? 'Dark Theme (Obsidian #0B1220)'
+                            : 'Light Theme (Warm Ivory #F7F5F0)',
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.secondaryText,
+                          color: secondaryTextColor,
                         ),
                       ),
                       trailing: Switch(
                         value: widget.isDarkMode,
-                        activeColor: AppTheme.primaryAccent,
+                        activeColor: AppTheme.deepEmerald,
                         onChanged: (_) => widget.onThemeToggle(),
                       ),
                     ),
-                    const Divider(color: AppTheme.border, height: 1),
+                    Divider(color: borderColor, height: 1),
                     ListTile(
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.notifications_outlined,
-                        color: AppTheme.secondaryText,
+                        color: secondaryTextColor,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Grooming Reminders',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
                         ),
                       ),
-                      subtitle: const Text(
+                      subtitle: Text(
                         'Bi-weekly haircut & beard trim notifications',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.secondaryText,
+                          color: secondaryTextColor,
                         ),
                       ),
                       trailing: Switch(
                         value: true,
-                        activeColor: AppTheme.primaryAccent,
+                        activeColor: AppTheme.deepEmerald,
                         onChanged: (_) {},
                       ),
                     ),
-                    const Divider(color: AppTheme.border, height: 1),
+                    Divider(color: borderColor, height: 1),
                     ListTile(
-                      leading: const Icon(Icons.logout, color: AppTheme.error),
+                      leading: const Icon(Icons.logout, color: AppTheme.errorRed),
                       title: const Text(
                         'Log Out',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.error,
+                          color: AppTheme.errorRed,
                         ),
                       ),
                       onTap: () {
@@ -539,10 +559,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
 
             // App Version
-            const Center(
+            Center(
               child: Text(
                 'StyleMirror v1.0.0 • AI Barber Grooming Companion',
-                style: TextStyle(fontSize: 11, color: AppTheme.secondaryText),
+                style: TextStyle(fontSize: 11, color: secondaryTextColor),
               ),
             ),
             const SizedBox(height: 20),

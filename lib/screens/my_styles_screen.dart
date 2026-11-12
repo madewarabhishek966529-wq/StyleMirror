@@ -83,13 +83,19 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
   }
 
   void _showBarberCardDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: AppTheme.border),
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: borderColor),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -105,51 +111,51 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryAccent.withOpacity(0.2),
+                          color: AppTheme.deepEmerald.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.content_cut, color: AppTheme.primaryAccent, size: 20),
+                        child: const Icon(Icons.content_cut, color: AppTheme.deepEmerald, size: 20),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
+                      Text(
                         'Barber Consultation Card',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor),
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.secondaryText, size: 18),
+                    icon: Icon(Icons.close, color: secondaryTextColor, size: 18),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Show this directly to your barber for exact clipper guard lengths & angles:',
-                style: TextStyle(fontSize: 12, color: AppTheme.secondaryText),
+                style: TextStyle(fontSize: 12, color: secondaryTextColor),
               ),
               const SizedBox(height: 16),
 
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.border),
+                  color: isDark ? AppTheme.darkBackground : AppTheme.ivoryBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: borderColor),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('HAIRCUT SPECIFICATION:', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryAccent)),
-                    SizedBox(height: 4),
-                    Text('• Sides & Back: Mid Skin Fade (#1.5 into #2 guard)', style: TextStyle(fontSize: 12, color: Colors.white)),
-                    Text('• Crown & Top: 2 inches point-cut with textured fringe', style: TextStyle(fontSize: 12, color: Colors.white)),
-                    Divider(color: AppTheme.border, height: 16),
-                    Text('BEARD SPECIFICATION:', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryAccent)),
-                    SizedBox(height: 4),
-                    Text('• Length: 6mm clipper baseline', style: TextStyle(fontSize: 12, color: Colors.white)),
-                    Text('• Neckline: 2 fingers above Adam\'s apple, U-shaped', style: TextStyle(fontSize: 12, color: Colors.white)),
-                    Text('• Cheekline: Natural fade; line up sideburn connection', style: TextStyle(fontSize: 12, color: Colors.white)),
+                    const Text('HAIRCUT SPECIFICATION:', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.deepEmerald, letterSpacing: 0.5)),
+                    const SizedBox(height: 4),
+                    Text('• Sides & Back: Mid Skin Fade (#1.5 into #2 guard)', style: TextStyle(fontSize: 12, color: primaryTextColor)),
+                    Text('• Crown & Top: 2 inches point-cut with textured fringe', style: TextStyle(fontSize: 12, color: primaryTextColor)),
+                    Divider(color: borderColor, height: 16),
+                    const Text('BEARD SPECIFICATION:', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.copper, letterSpacing: 0.5)),
+                    const SizedBox(height: 4),
+                    Text('• Length: 6mm clipper baseline', style: TextStyle(fontSize: 12, color: primaryTextColor)),
+                    Text('• Neckline: 2 fingers above Adam\'s apple, U-shaped', style: TextStyle(fontSize: 12, color: primaryTextColor)),
+                    Text('• Cheekline: Natural fade; line up sideburn connection', style: TextStyle(fontSize: 12, color: primaryTextColor)),
                   ],
                 ),
               ),
@@ -162,7 +168,7 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        backgroundColor: AppTheme.success,
+                        backgroundColor: AppTheme.deepEmerald,
                         content: Text('✓ Barber Consultation Card saved to device.'),
                       ),
                     );
@@ -189,14 +195,20 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Styles Vault'),
         actions: [
           TextButton.icon(
             onPressed: _showBarberCardDialog,
-            icon: const Icon(Icons.share, size: 16, color: AppTheme.primaryAccent),
-            label: const Text('Barber Card', style: TextStyle(fontSize: 12, color: AppTheme.primaryAccent, fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.share, size: 16, color: AppTheme.deepEmerald),
+            label: const Text('Barber Card', style: TextStyle(fontSize: 12, color: AppTheme.deepEmerald, fontWeight: FontWeight.bold)),
           ),
         ],
         bottom: TabBar(
@@ -215,7 +227,7 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
           // Biometric Vault Metrics Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            color: AppTheme.cardBackground,
+            color: cardBg,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -224,15 +236,15 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryAccent.withOpacity(0.18),
+                        color: AppTheme.deepEmerald.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.verified, color: AppTheme.primaryAccent, size: 14),
+                      child: const Icon(Icons.verified, color: AppTheme.deepEmerald, size: 14),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '${_savedLooks.length} Stored Looks • ${widget.faceProfile.faceShape} Biometrics',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTextColor),
                     ),
                   ],
                 ),
@@ -240,16 +252,16 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                   onTap: _showBarberCardDialog,
                   child: const Row(
                     children: [
-                      Icon(Icons.print_outlined, size: 14, color: AppTheme.secondaryAccent),
+                      Icon(Icons.print_outlined, size: 14, color: AppTheme.copper),
                       SizedBox(width: 4),
-                      Text('Export', style: TextStyle(fontSize: 11, color: AppTheme.secondaryAccent, fontWeight: FontWeight.bold)),
+                      Text('Export', style: TextStyle(fontSize: 11, color: AppTheme.copper, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(color: AppTheme.border, height: 1),
+          Divider(color: borderColor, height: 1),
 
           // Saved Looks Grid
           Expanded(
@@ -258,11 +270,11 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.bookmark_outline, size: 48, color: AppTheme.secondaryText),
+                        Icon(Icons.bookmark_outline, size: 48, color: secondaryTextColor),
                         const SizedBox(height: 12),
-                        const Text('No saved looks yet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text('No saved looks yet', style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        const Text('Try on styles and save your favorites here', style: TextStyle(color: AppTheme.secondaryText, fontSize: 12)),
+                        Text('Try on styles and save your favorites here', style: TextStyle(color: secondaryTextColor, fontSize: 12)),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: widget.onNavigateToTryOn,
@@ -282,7 +294,7 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     itemCount: _savedLooks.length,
                     itemBuilder: (context, i) {
                       final item = _savedLooks[i];
-                      return _buildSavedLookCard(item, i);
+                      return _buildSavedLookCard(item, i, isDark, cardBg, primaryTextColor, secondaryTextColor, borderColor);
                     },
                   ),
           ),
@@ -291,19 +303,28 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildSavedLookCard(Map<String, dynamic> item, int index) {
+  Widget _buildSavedLookCard(
+    Map<String, dynamic> item,
+    int index,
+    bool isDark,
+    Color cardBg,
+    Color primaryTextColor,
+    Color secondaryTextColor,
+    Color borderColor,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
             child: SizedBox(
               height: 140,
               width: double.infinity,
@@ -321,8 +342,8 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.success,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppTheme.successGreen,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         item['match'] as String,
@@ -336,7 +357,7 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     child: IconButton(
                       icon: Icon(
                         item['isFavorite'] == true ? Icons.favorite : Icons.favorite_border,
-                        color: item['isFavorite'] == true ? AppTheme.primaryAccent : Colors.white70,
+                        color: item['isFavorite'] == true ? AppTheme.copper : Colors.white70,
                         size: 20,
                       ),
                       onPressed: () {
@@ -361,19 +382,19 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                   item['title'] as String,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTextColor),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   item['specs'] as String,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, color: AppTheme.secondaryAccent),
+                  style: const TextStyle(fontSize: 10, color: AppTheme.copper, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   item['date'] as String,
-                  style: const TextStyle(fontSize: 9, color: AppTheme.secondaryText),
+                  style: TextStyle(fontSize: 9, color: secondaryTextColor),
                 ),
                 const SizedBox(height: 8),
 
@@ -391,7 +412,7 @@ class _MyStylesScreenState extends State<MyStylesScreen> with SingleTickerProvid
                     ),
                     const SizedBox(width: 4),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.error),
+                      icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.errorRed),
                       onPressed: () => _deleteLook(index),
                       visualDensity: VisualDensity.compact,
                     ),

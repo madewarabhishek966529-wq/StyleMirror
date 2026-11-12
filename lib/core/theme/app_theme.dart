@@ -1,199 +1,327 @@
 import 'package:flutter/material.dart';
 
-/// StyleMirror Premium AI Men's Grooming Theme
-/// Exact Palette specified in Master Design System:
-/// - Primary background: #101114
-/// - Secondary background: #191B20
-/// - Card background: #22252B
-/// - Primary accent: #B9A0FF (Electric Lavender)
-/// - Secondary accent: #D4C5A5 (Champagne Barber Gold)
-/// - Primary text: #FFFFFF
-/// - Secondary text: #A1A1AA
-/// - Success: #4ADE80
-/// - Error: #F87171
+/// StyleMirror Editorial Barbershop & Clean Modern SaaS Theme
+/// Design System Specifications:
+/// - Light, editorial, spacious with optional dark mode toggle.
+/// - Colors (Light Mode):
+///   - Background: warm ivory #F7F5F0
+///   - Surface/cards: #FFFFFF with 1px border #E7E2D9
+///   - Primary text: ink navy #0F1B2D
+///   - Secondary text: slate #5B6678
+///   - Primary accent: deep emerald #0F766E (buttons, active states, links)
+///   - Secondary accent: copper #B5733A (badges, highlights, small details only)
+///   - Success: #16A34A
+///   - Error: #DC2626
+/// - Colors (Dark Mode):
+///   - Background: #0B1220
+///   - Cards: #131C2E with 1px border #1E293B
+///   - Primary text: #F8FAFC
+///   - Secondary text: #94A3B8
+///   - Accents: Deep emerald #0F766E & Copper #B5733A
+/// - Typography: Headings in Serif (Playfair / DM Serif style), UI in Sans-Serif (Inter)
+/// - Shapes: 14px radius cards, 10px radius buttons, soft shadows (0 8px 24px rgba(15,27,45,0.08))
 class AppTheme {
-  // Master Color Palette
-  static const Color background = Color(0xFF101114);
-  static const Color secondaryBackground = Color(0xFF191B20);
-  static const Color cardBackground = Color(0xFF22252B);
-  static const Color primaryAccent = Color(0xFFB9A0FF);
-  static const Color secondaryAccent = Color(0xFFD4C5A5);
-  static const Color primaryText = Color(0xFFFFFFFF);
-  static const Color secondaryText = Color(0xFFA1A1AA);
-  static const Color success = Color(0xFF4ADE80);
-  static const Color error = Color(0xFFF87171);
+  // Light Palette Tokens
+  static const Color ivoryBackground = Color(0xFFF7F5F0); // Warm Ivory
+  static const Color cardWhite = Color(0xFFFFFFFF);       // Clean Card Surface
+  static const Color borderIvory = Color(0xFFE7E2D9);     // Subtle 1px Border
+  static const Color inkNavy = Color(0xFF0F1B2D);         // High Contrast Ink Navy
+  static const Color slate = Color(0xFF5B6678);           // Refined Slate
+  static const Color deepEmerald = Color(0xFF0F766E);     // Deep Emerald Accent
+  static const Color copper = Color(0xFFB5733A);          // Copper Accent (Badges/Details)
+  static const Color successGreen = Color(0xFF16A34A);    // Success
+  static const Color errorRed = Color(0xFFDC2626);        // Error
 
-  // Surface & Border aliases for backward compatibility and design harmony
-  static const Color surface = Color(0xFF191B20);
-  static const Color surfaceElevated = Color(0xFF22252B);
-  static const Color border = Color(0xFF2A2E37);
-  static const Color borderHighlight = Color(0xFFB9A0FF);
+  // Dark Palette Tokens
+  static const Color darkBackground = Color(0xFF0B1220);  // Dark Obsidian Navy
+  static const Color darkCard = Color(0xFF131C2E);        // Dark Card Surface
+  static const Color darkBorder = Color(0xFF1E293B);      // Dark 1px Border
+  static const Color darkTextPrimary = Color(0xFFF8FAFC); // High Contrast White
+  static const Color darkTextSecondary = Color(0xFF94A3B8);// Slate Grey
 
-  // Brand aliases
-  static const Color primary = Color(0xFFB9A0FF);
-  static const Color primaryLight = Color(0xFFD4C5A5);
-  static const Color accentGold = Color(0xFFD4C5A5);
-  static const Color accentCyan = Color(0xFF67E8F9);
-  static const Color accentAmber = Color(0xFFFBBF24);
-  static const Color danger = Color(0xFFF87171);
-  static const Color warning = Color(0xFFFB923C);
+  // Primary Canonical References (Default Light Theme)
+  static const Color background = ivoryBackground;
+  static const Color secondaryBackground = Color(0xFFEFECE5);
+  static const Color cardBackground = cardWhite;
+  static const Color primaryAccent = deepEmerald;
+  static const Color secondaryAccent = copper;
+  static const Color primaryText = inkNavy;
+  static const Color secondaryText = slate;
+  static const Color success = successGreen;
+  static const Color error = errorRed;
+  static const Color danger = errorRed;
+  static const Color border = borderIvory;
 
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFA1A1AA);
-  static const Color textMuted = Color(0xFFA1A1AA);
+  // Backward-compatible Brand Aliases
+  static const Color surface = cardWhite;
+  static const Color surfaceElevated = cardWhite;
+  static const Color borderHighlight = deepEmerald;
+  static const Color primary = deepEmerald;
+  static const Color primaryLight = copper;
+  static const Color accentGold = copper;
+  static const Color accentCyan = deepEmerald;
+  static const Color textPrimary = inkNavy;
+  static const Color textSecondary = slate;
+  static const Color textMuted = slate;
 
-  // --- DARK THEME (PRIMARY) ---
-  static ThemeData get darkTheme {
+  // Elevation & Shadows
+  static const BoxShadow cardShadow = BoxShadow(
+    color: Color(0x140F1B2D), // rgba(15, 27, 45, 0.08)
+    blurRadius: 24,
+    offset: Offset(0, 8),
+  );
+
+  static const BoxShadow subtleShadow = BoxShadow(
+    color: Color(0x0A0F1B2D),
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  );
+
+  // Border Radii
+  static final BorderRadius cardRadius = BorderRadius.circular(14);
+  static final BorderRadius buttonRadius = BorderRadius.circular(10);
+  static final BorderRadius chipRadius = BorderRadius.circular(20);
+
+  // --- LIGHT THEME (PRIMARY DEFAULT) ---
+  static ThemeData get lightTheme {
     return ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: background,
-      primaryColor: primaryAccent,
-      colorScheme: const ColorScheme.dark(
-        primary: primaryAccent,
-        secondary: secondaryAccent,
-        surface: surface,
-        error: error,
-        onPrimary: Color(0xFF101114),
-        onSecondary: Color(0xFF101114),
-        onSurface: primaryText,
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: ivoryBackground,
+      primaryColor: deepEmerald,
+      colorScheme: const ColorScheme.light(
+        primary: deepEmerald,
+        secondary: copper,
+        surface: cardWhite,
+        error: errorRed,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: inkNavy,
       ),
+      fontFamily: 'sans-serif',
       appBarTheme: const AppBarTheme(
-        backgroundColor: background,
+        backgroundColor: ivoryBackground,
+        foregroundColor: inkNavy,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          color: primaryText,
-          fontSize: 20,
+          fontFamily: 'serif',
+          color: inkNavy,
+          fontSize: 22,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
+          letterSpacing: -0.3,
         ),
-        iconTheme: IconThemeData(color: primaryText),
+        iconTheme: IconThemeData(color: inkNavy),
       ),
       cardTheme: CardThemeData(
-        color: cardBackground,
+        color: cardWhite,
         elevation: 0,
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: border, width: 1),
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: borderIvory, width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryAccent,
-          foregroundColor: const Color(0xFF101114),
+          backgroundColor: deepEmerald,
+          foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
           textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.3,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryText,
-          side: const BorderSide(color: border, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          foregroundColor: inkNavy,
+          side: const BorderSide(color: borderIvory, width: 1.2),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
           textStyle: const TextStyle(
-            fontSize: 15,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: deepEmerald,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: cardWhite,
+        selectedColor: deepEmerald.withOpacity(0.12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: borderIvory, width: 1),
+        ),
+        labelStyle: const TextStyle(fontSize: 12, color: slate, fontWeight: FontWeight.w500),
+        secondaryLabelStyle: const TextStyle(fontSize: 12, color: deepEmerald, fontWeight: FontWeight.w700),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: cardWhite,
+        hintStyle: const TextStyle(color: slate, fontSize: 13),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: borderIvory),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: borderIvory),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: deepEmerald, width: 1.5),
+        ),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: deepEmerald,
+        unselectedLabelColor: slate,
+        indicatorColor: deepEmerald,
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: cardWhite,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: borderIvory),
+        ),
+      ),
+    );
+  }
+
+  // --- DARK THEME (OPTIONAL TOGGLE) ---
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: darkBackground,
+      primaryColor: deepEmerald,
+      colorScheme: const ColorScheme.dark(
+        primary: deepEmerald,
+        secondary: copper,
+        surface: darkCard,
+        error: errorRed,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: darkTextPrimary,
+      ),
+      fontFamily: 'sans-serif',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: darkBackground,
+        foregroundColor: darkTextPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontFamily: 'serif',
+          color: darkTextPrimary,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
+        ),
+        iconTheme: IconThemeData(color: darkTextPrimary),
+      ),
+      cardTheme: CardThemeData(
+        color: darkCard,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: darkBorder, width: 1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: deepEmerald,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkTextPrimary,
+          side: const BorderSide(color: darkBorder, width: 1.2),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceElevated,
-        selectedColor: primaryAccent.withOpacity(0.25),
-        secondarySelectedColor: primaryAccent,
+        backgroundColor: darkCard,
+        selectedColor: deepEmerald.withOpacity(0.25),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: border, width: 1),
+          side: const BorderSide(color: darkBorder, width: 1),
         ),
-        labelStyle: const TextStyle(fontSize: 13, color: secondaryText),
-        secondaryLabelStyle: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(fontSize: 12, color: darkTextSecondary),
+        secondaryLabelStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardBackground,
-        hintStyle: const TextStyle(color: secondaryText, fontSize: 13),
+        fillColor: darkCard,
+        hintStyle: const TextStyle(color: darkTextSecondary, fontSize: 13),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: border),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: darkBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: border),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryAccent, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: deepEmerald, width: 1.5),
         ),
       ),
       tabBarTheme: const TabBarThemeData(
-        labelColor: primaryAccent,
-        unselectedLabelColor: secondaryText,
-        indicatorColor: primaryAccent,
+        labelColor: deepEmerald,
+        unselectedLabelColor: darkTextSecondary,
+        indicatorColor: deepEmerald,
+        indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
         unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
       ),
-    );
-  }
-
-  // --- LIGHT THEME VARIATION ---
-  static ThemeData get lightTheme {
-    return ThemeData(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-      primaryColor: const Color(0xFF7C3AED),
-      colorScheme: const ColorScheme.light(
-        primary: Color(0xFF7C3AED),
-        secondary: Color(0xFF92400E),
-        surface: Colors.white,
-        error: error,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: Color(0xFF18181B),
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        titleTextStyle: TextStyle(
-          color: Color(0xFF18181B),
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-        iconTheme: IconThemeData(color: Color(0xFF18181B)),
-      ),
-      cardTheme: CardThemeData(
-        color: Colors.white,
-        elevation: 0,
+      dialogTheme: DialogThemeData(
+        backgroundColor: darkCard,
+        elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE4E4E7), width: 1),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF7C3AED),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
+          side: const BorderSide(color: darkBorder),
         ),
       ),
     );

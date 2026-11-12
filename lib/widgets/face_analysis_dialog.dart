@@ -51,12 +51,18 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? AppTheme.darkBackground : AppTheme.ivoryBackground;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
-      decoration: const BoxDecoration(
-        color: AppTheme.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: AppTheme.border, width: 1.5)),
+      decoration: BoxDecoration(
+        color: dialogBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: borderColor, width: 1.5)),
       ),
       child: SafeArea(
         top: false,
@@ -68,7 +74,7 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.secondaryText.withOpacity(0.3),
+                color: secondaryTextColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -84,29 +90,29 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryAccent.withOpacity(0.15),
+                          color: AppTheme.deepEmerald.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.face_retouching_natural, color: AppTheme.primaryAccent, size: 20),
+                        child: const Icon(Icons.face_retouching_natural, color: AppTheme.deepEmerald, size: 20),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('AI Face Analysis', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text('Biometric shape, jawline & hairline detection', style: TextStyle(fontSize: 11, color: AppTheme.secondaryText)),
+                          Text('AI Face Analysis', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor)),
+                          Text('Biometric shape, jawline & hairline detection', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
                         ],
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.secondaryText),
+                    icon: Icon(Icons.close, color: secondaryTextColor),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
-            const Divider(color: AppTheme.border, height: 1),
+            Divider(color: borderColor, height: 1),
 
             // Content
             Expanded(
@@ -131,6 +137,11 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
   }
 
   Widget _buildCaptureGuideState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -252,18 +263,18 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.cardBackground,
+              color: isDark ? AppTheme.darkCard : AppTheme.cardWhite,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: borderColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.tune, size: 16, color: AppTheme.secondaryAccent),
-                    SizedBox(width: 8),
-                    Text('Select Face Shape to Calibrate:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Icon(Icons.tune, size: 16, color: AppTheme.copper),
+                    const SizedBox(width: 8),
+                    Text('Select Face Shape to Calibrate:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTextColor)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -288,17 +299,18 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.secondaryBackground,
+              color: isDark ? AppTheme.darkCard : AppTheme.ivoryBackground,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Front-Facing Photo Requirements:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryAccent)),
-                SizedBox(height: 4),
-                Text('• Direct eye-level camera angle with neutral expression', style: TextStyle(fontSize: 11, color: AppTheme.secondaryText)),
-                Text('• Uniform balanced lighting; avoid heavy shadows on jawline', style: TextStyle(fontSize: 11, color: AppTheme.secondaryText)),
-                Text('• Remove hats and sunglasses to reveal complete forehead & hairline', style: TextStyle(fontSize: 11, color: AppTheme.secondaryText)),
+                const Text('Front-Facing Photo Requirements:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.deepEmerald)),
+                const SizedBox(height: 4),
+                Text('• Direct eye-level camera angle with neutral expression', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
+                Text('• Uniform balanced lighting; avoid heavy shadows on jawline', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
+                Text('• Remove hats and sunglasses to reveal complete forehead & hairline', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
               ],
             ),
           ),
@@ -319,6 +331,10 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
   }
 
   Widget _buildScanningState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -330,23 +346,23 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.primaryAccent.withOpacity(0.12),
-                border: Border.all(color: AppTheme.primaryAccent, width: 2),
+                color: AppTheme.deepEmerald.withOpacity(0.12),
+                border: Border.all(color: AppTheme.deepEmerald, width: 2),
               ),
               child: const Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryAccent, strokeWidth: 3),
+                child: CircularProgressIndicator(color: AppTheme.deepEmerald, strokeWidth: 3),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Scanning Facial Biometrics...',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Measuring cheekbone width, jawline taper, hairline symmetry & face proportions',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppTheme.secondaryText),
+              style: TextStyle(fontSize: 12, color: secondaryTextColor),
             ),
           ],
         ),
@@ -355,6 +371,12 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
   }
 
   Widget _buildResultsState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -366,31 +388,31 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primaryAccent.withOpacity(0.2),
-                  AppTheme.secondaryAccent.withOpacity(0.1),
+                  AppTheme.deepEmerald.withOpacity(0.15),
+                  AppTheme.copper.withOpacity(0.08),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.5)),
+              border: Border.all(color: AppTheme.deepEmerald.withOpacity(0.4)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: const BoxDecoration(
-                    color: AppTheme.primaryAccent,
+                    color: AppTheme.deepEmerald,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.verified, color: AppTheme.background, size: 28),
+                  child: const Icon(Icons.verified, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('DETECTED FACE SHAPE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryAccent, letterSpacing: 0.8)),
-                      Text('${_currentProfile.faceShape} Face Shape', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text(_currentProfile.proportions, style: const TextStyle(fontSize: 12, color: AppTheme.secondaryAccent)),
+                      const Text('DETECTED FACE SHAPE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.deepEmerald, letterSpacing: 0.8)),
+                      Text('${_currentProfile.faceShape} Face Shape', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryTextColor)),
+                      Text(_currentProfile.proportions, style: const TextStyle(fontSize: 12, color: AppTheme.copper, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
@@ -400,14 +422,14 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
           const SizedBox(height: 16),
 
           // Biometric attributes breakdown
-          const Text('Facial Feature Analysis:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text('Facial Feature Analysis:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryTextColor)),
           const SizedBox(height: 10),
 
-          _buildFeatureRow(Icons.crop_portrait, 'Proportions', _currentProfile.proportions),
-          _buildFeatureRow(Icons.architecture, 'Jawline', _currentProfile.jawline),
-          _buildFeatureRow(Icons.panorama_vertical_outlined, 'Forehead', _currentProfile.forehead),
-          _buildFeatureRow(Icons.face, 'Hairline', _currentProfile.hairline),
-          _buildFeatureRow(Icons.brush_outlined, 'Facial Hair Suitability', _currentProfile.facialHairSuitability),
+          _buildFeatureRow(Icons.crop_portrait, 'Proportions', _currentProfile.proportions, cardBg, borderColor, primaryTextColor, secondaryTextColor),
+          _buildFeatureRow(Icons.architecture, 'Jawline', _currentProfile.jawline, cardBg, borderColor, primaryTextColor, secondaryTextColor),
+          _buildFeatureRow(Icons.panorama_vertical_outlined, 'Forehead', _currentProfile.forehead, cardBg, borderColor, primaryTextColor, secondaryTextColor),
+          _buildFeatureRow(Icons.face, 'Hairline', _currentProfile.hairline, cardBg, borderColor, primaryTextColor, secondaryTextColor),
+          _buildFeatureRow(Icons.brush_outlined, 'Facial Hair Suitability', _currentProfile.facialHairSuitability, cardBg, borderColor, primaryTextColor, secondaryTextColor),
 
           const SizedBox(height: 16),
 
@@ -415,24 +437,25 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.cardBackground,
+              color: cardBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: borderColor),
+              boxShadow: const [AppTheme.subtleShadow],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.lightbulb_outline, size: 16, color: AppTheme.secondaryAccent),
+                    Icon(Icons.lightbulb_outline, size: 16, color: AppTheme.copper),
                     SizedBox(width: 8),
-                    Text('Stylist Assessment:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondaryAccent)),
+                    Text('Stylist Assessment:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.copper)),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   _currentProfile.matchReason,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryText, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: secondaryTextColor, height: 1.4),
                 ),
               ],
             ),
@@ -464,26 +487,34 @@ class _FaceAnalysisDialogState extends State<FaceAnalysisDialog> {
     );
   }
 
-  Widget _buildFeatureRow(IconData icon, String label, String value) {
+  Widget _buildFeatureRow(
+    IconData icon,
+    String label,
+    String value,
+    Color cardBg,
+    Color borderColor,
+    Color primaryTextColor,
+    Color secondaryTextColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: cardBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: AppTheme.primaryAccent),
+            Icon(icon, size: 18, color: AppTheme.deepEmerald),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.secondaryText, fontWeight: FontWeight.bold)),
-                  Text(value, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600)),
+                  Text(label, style: TextStyle(fontSize: 10, color: secondaryTextColor, fontWeight: FontWeight.bold)),
+                  Text(value, style: TextStyle(fontSize: 12, color: primaryTextColor, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),

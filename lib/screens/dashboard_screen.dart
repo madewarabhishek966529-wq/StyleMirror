@@ -3,9 +3,13 @@ import '../core/theme/app_theme.dart';
 import '../data/style_catalog_data.dart';
 import '../models/face_profile_model.dart';
 import '../models/style_model.dart';
+import '../widgets/bento_card.dart';
 import '../widgets/border_beam_button.dart';
+import '../widgets/border_beam_card.dart';
+import '../widgets/dot_pattern_background.dart';
 import '../widgets/face_analysis_dialog.dart';
 import '../widgets/neon_flicker_text.dart';
+import '../widgets/shiny_button.dart';
 import '../widgets/style_card.dart';
 
 /// Screen 1 & 4: Landing Page & Personalized Barbershop Dashboard
@@ -75,7 +79,7 @@ class DashboardScreen extends StatelessWidget {
             child: CircleAvatar(
               radius: 16,
               backgroundColor: cardBg,
-              backgroundImage: const AssetImage('assets/portraits/model_1.jpg'),
+              child: const Icon(Icons.person, size: 20, color: AppTheme.deepEmerald),
             ),
           ),
         ],
@@ -86,11 +90,12 @@ class DashboardScreen extends StatelessWidget {
         onTap: onNavigateToTryOn,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: DotPatternBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // --- 1. HERO SECTION: "See the cut before you commit." (Image 2) ---
             _buildHeroSection(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 24),
@@ -162,19 +167,14 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
   Widget _buildHeroSection(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
-    return Container(
-      width: double.infinity,
+    return BorderBeamCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: AppTheme.cardRadius,
-        border: Border.all(color: borderColor),
-        boxShadow: const [AppTheme.cardShadow],
-      ),
+      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -233,6 +233,7 @@ class DashboardScreen extends StatelessWidget {
                         'assets/portraits/transform_before_1.jpg',
                         height: 190,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.person, size: 40)),
                       ),
                     ),
                     Expanded(
@@ -240,6 +241,7 @@ class DashboardScreen extends StatelessWidget {
                         'assets/portraits/transform_after_1.jpg',
                         height: 190,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.auto_awesome, size: 40)),
                       ),
                     ),
                   ],
@@ -277,14 +279,19 @@ class DashboardScreen extends StatelessWidget {
           Wrap(
             spacing: 12,
             runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ElevatedButton.icon(
+              ShinyButton(
                 onPressed: onNavigateToTryOn,
-                icon: const Icon(Icons.auto_awesome, size: 16),
-                label: const Text('Start Virtual Try-On'),
+                icon: const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                label: 'Start Virtual Try-On',
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               ),
               OutlinedButton(
                 onPressed: onNavigateToExplore,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
                 child: const Text('Browse 50 Styles'),
               ),
             ],
@@ -297,34 +304,31 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildFeatureRow(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
     return Row(
       children: [
-        _buildFeatureItem(
-          icon: Icons.shield_outlined,
-          title: 'Identity Preserved',
-          desc: 'Bone structure & skin stay authentic',
-          cardBg: cardBg,
-          borderColor: borderColor,
-          textPrimary: textPrimary,
-          textSecondary: textSecondary,
+        Expanded(
+          child: BentoCard(
+            icon: Icons.shield_outlined,
+            title: 'Identity Preserved',
+            description: 'Bone structure & skin stay authentic',
+            onTap: onNavigateToTryOn,
+          ),
         ),
         const SizedBox(width: 10),
-        _buildFeatureItem(
-          icon: Icons.content_cut,
-          title: '50 Barber Styles',
-          desc: 'Clipper guard numbers & lengths',
-          cardBg: cardBg,
-          borderColor: borderColor,
-          textPrimary: textPrimary,
-          textSecondary: textSecondary,
+        Expanded(
+          child: BentoCard(
+            icon: Icons.content_cut,
+            title: '50 Barber Styles',
+            description: 'Clipper guard numbers & lengths',
+            onTap: onNavigateToExplore,
+          ),
         ),
         const SizedBox(width: 10),
-        _buildFeatureItem(
-          icon: Icons.timer_outlined,
-          title: 'Auto-Delete in 24h',
-          desc: 'Zero AI training & instant wipe',
-          cardBg: cardBg,
-          borderColor: borderColor,
-          textPrimary: textPrimary,
-          textSecondary: textSecondary,
+        Expanded(
+          child: BentoCard(
+            icon: Icons.timer_outlined,
+            title: 'Auto-Delete in 24h',
+            description: 'Zero AI training & instant wipe',
+            onTap: onNavigateToTryOn,
+          ),
         ),
       ],
     );
@@ -332,15 +336,9 @@ class DashboardScreen extends StatelessWidget {
 
   /// Ready to Style Your Look Card (from User Mockup Image 1)
   Widget _buildReadyToStyleCard(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
-    return Container(
-      width: double.infinity,
+    return BorderBeamCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: AppTheme.cardRadius,
-        border: Border.all(color: borderColor),
-        boxShadow: const [AppTheme.cardShadow],
-      ),
+      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -408,23 +406,15 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Button 3: Let's Start: Style Hair & Beard
+          // Button 3: Let's Start: Style Hair & Beard (ShinyButton animation)
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: ShinyButton(
               onPressed: onNavigateToTryOn,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.deepEmerald,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                elevation: 4,
-              ),
               icon: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
-              label: const Text(
-                "Let's Start: Style Hair & Beard",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3),
-              ),
+              label: "Let's Start: Style Hair & Beard",
+              fontSize: 14,
+              padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
         ],
@@ -432,37 +422,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String desc,
-    required Color cardBg,
-    required Color borderColor,
-    required Color textPrimary,
-    required Color textSecondary,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-          boxShadow: const [AppTheme.subtleShadow],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: AppTheme.deepEmerald),
-            const SizedBox(height: 8),
-            Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
-            const SizedBox(height: 2),
-            Text(desc, style: TextStyle(fontSize: 10, color: textSecondary, height: 1.3)),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildHowItWorks(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
     return Container(
@@ -595,6 +555,10 @@ class DashboardScreen extends StatelessWidget {
                     width: 58,
                     height: 58,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: AppTheme.deepEmerald.withOpacity(0.1),
+                      child: const Icon(Icons.person, color: AppTheme.deepEmerald, size: 28),
+                    ),
                   ),
                 ),
               ),
@@ -681,6 +645,10 @@ class DashboardScreen extends StatelessWidget {
                 width: 86,
                 height: 104,
                 fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppTheme.deepEmerald.withOpacity(0.1),
+                  child: const Icon(Icons.auto_awesome, color: AppTheme.deepEmerald, size: 28),
+                ),
               ),
             ),
           ),
@@ -797,7 +765,16 @@ class DashboardScreen extends StatelessWidget {
             child: SizedBox(
               width: 48,
               height: 48,
-              child: Image.asset('assets/portraits/transform_after_2.jpg', width: 48, height: 48, fit: BoxFit.cover),
+              child: Image.asset(
+                'assets/portraits/transform_after_2.jpg',
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppTheme.copper.withOpacity(0.1),
+                  child: const Icon(Icons.history, color: AppTheme.copper, size: 22),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),

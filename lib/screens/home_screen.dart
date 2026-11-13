@@ -163,14 +163,14 @@ class HomeScreenState extends State<HomeScreen>
   // ==================== STEP 0: PHOTO UPLOAD & PYTHON SINGLE-FACE DETECTION ====================
 
   void _onUploadTapped() async {
-    _openPhotoOptionsSheet();
-  }
-
-  void _openPhotoOptionsSheet() async {
     final agreed = await ConsentDialog.show(context);
     if (agreed != true) return;
 
     _showPhotoSourcePicker();
+  }
+
+  void _openPhotoOptionsSheet() async {
+    _onUploadTapped();
   }
 
   void _showPhotoSourcePicker() {
@@ -2364,8 +2364,8 @@ class HomeScreenState extends State<HomeScreen>
             ? base64Decode(_currentJob!.resultBase64!)
             : null);
 
-    final fallbackBefore = 'assets/portraits/transform_before_1.jpg';
-    final fallbackAfter = 'assets/portraits/transform_after_1.jpg';
+    const fallbackBefore = 'assets/portraits/transform_before_1.jpg';
+    const fallbackAfter = 'assets/portraits/transform_after_1.jpg';
 
     if (_twoImagesSideBySide) {
       return LayoutBuilder(

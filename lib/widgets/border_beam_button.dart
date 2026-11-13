@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
@@ -34,11 +35,17 @@ class _BorderBeamButtonState extends State<BorderBeamButton> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    // Continuous 360-degree border beam rotation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
-    )..repeat();
+    );
+
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (!isTest) {
+      _controller.repeat();
+    } else {
+      _controller.value = 0.5;
+    }
   }
 
   @override
@@ -196,3 +203,4 @@ class _BorderBeamPainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
+

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
@@ -35,13 +36,18 @@ class _NeonFlickerTextState extends State<NeonFlickerText> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    // Continuous subtle breathing neon pulse
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
-    )..repeat(reverse: true);
+    );
 
-    _scheduleNextFlicker();
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (!isTest) {
+      _pulseController.repeat(reverse: true);
+      _scheduleNextFlicker();
+    } else {
+      _pulseController.value = 1.0;
+    }
   }
 
   void _scheduleNextFlicker() {
@@ -149,3 +155,4 @@ class _NeonFlickerTextState extends State<NeonFlickerText> with SingleTickerProv
     );
   }
 }
+

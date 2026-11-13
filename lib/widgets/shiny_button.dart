@@ -1,6 +1,6 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/app_platform.dart';
 
 /// DartNova-inspired Shiny Button:
 /// A sleek button with an animated metallic light reflection sweeping across its surface.
@@ -46,8 +46,7 @@ class _ShinyButtonState extends State<ShinyButton> with SingleTickerProviderStat
       duration: widget.duration,
     );
 
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    if (!isTest) {
+    if (!AppPlatform.isTest) {
       _controller.repeat();
     } else {
       _controller.value = 0.5;
@@ -150,3 +149,4 @@ class _ShinyButtonState extends State<ShinyButton> with SingleTickerProviderStat
     );
   }
 }
+

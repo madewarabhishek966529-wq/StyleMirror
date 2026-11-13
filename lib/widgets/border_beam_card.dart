@@ -1,7 +1,7 @@
-import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/app_platform.dart';
 
 /// DartNova-inspired Border Beam Card:
 /// Animates a radiant glowing light beam orbiting around any rounded rectangular card.
@@ -44,8 +44,7 @@ class _BorderBeamCardState extends State<BorderBeamCard> with SingleTickerProvid
       duration: widget.duration,
     );
 
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    if (!isTest) {
+    if (!AppPlatform.isTest) {
       _controller.repeat();
     } else {
       _controller.value = 0.5;
@@ -182,3 +181,4 @@ class _BorderBeamCardPainter extends CustomPainter {
   bool shouldRepaint(_BorderBeamCardPainter oldDelegate) =>
       oldDelegate.progress != progress;
 }
+

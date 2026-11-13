@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/app_platform.dart';
 import 'models/face_profile_model.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/explorer_screen.dart';
@@ -13,8 +14,14 @@ import 'widgets/border_beam_button.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Automatically start Python backend if running on desktop and not already active
-  await BackendLauncher.ensureBackendRunning();
+  // Safely start Python backend only on desktop platforms (skip on Web & tests)
+  try {
+    if (!AppPlatform.isWeb && !AppPlatform.isTest) {
+      await BackendLauncher.ensureBackendRunning();
+    }
+  } catch (e) {
+    debugPrint('Backend launcher skipped: $e');
+  }
 
   final apiService = StyleMirrorApiService();
   runApp(StyleMirrorApp(apiService: apiService));

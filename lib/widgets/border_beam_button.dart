@@ -1,7 +1,7 @@
-import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/app_platform.dart';
 
 /// Border Beam Button: A high-end button featuring an animated glowing light beam
 /// orbiting around its circular border, with a centered '+' symbol.
@@ -40,8 +40,7 @@ class _BorderBeamButtonState extends State<BorderBeamButton> with SingleTickerPr
       duration: const Duration(milliseconds: 2800),
     );
 
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    if (!isTest) {
+    if (!AppPlatform.isTest) {
       _controller.repeat();
     } else {
       _controller.value = 0.5;

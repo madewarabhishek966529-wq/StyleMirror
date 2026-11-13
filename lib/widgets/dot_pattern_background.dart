@@ -71,3 +71,4 @@ class _DotPatternPainter extends CustomPainter {
       oldDelegate.spacing != spacing ||
       oldDelegate.dotColor != dotColor;
 }
+

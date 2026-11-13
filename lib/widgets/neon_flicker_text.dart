@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/app_platform.dart';
 
 /// Neon Flicker Text with realistic electric neon gas-tube pulse & intermittent flicker
 class NeonFlickerText extends StatefulWidget {
@@ -41,8 +41,7 @@ class _NeonFlickerTextState extends State<NeonFlickerText> with SingleTickerProv
       duration: const Duration(milliseconds: 2200),
     );
 
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    if (!isTest) {
+    if (!AppPlatform.isTest) {
       _pulseController.repeat(reverse: true);
       _scheduleNextFlicker();
     } else {

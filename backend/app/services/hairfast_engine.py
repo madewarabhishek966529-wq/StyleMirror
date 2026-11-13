@@ -505,3 +505,4 @@ class HairFastEngine:
         out_buf = io.BytesIO()
         out_pil.save(out_buf, format="JPEG", quality=95)
         return out_buf.getvalue()
+

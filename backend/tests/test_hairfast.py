@@ -48,3 +48,4 @@ def test_hairfast_transform_end_to_end():
     assert res_img is not None
     assert res_img.shape[0] > 0
     assert res_img.shape[1] > 0
+

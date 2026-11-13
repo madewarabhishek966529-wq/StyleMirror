@@ -7,3 +7,4 @@ class AppPlatform {
   static const bool isWindows = false;
   static const bool isDesktop = false;
 }
+

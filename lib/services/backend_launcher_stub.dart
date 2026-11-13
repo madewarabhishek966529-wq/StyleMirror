@@ -12,3 +12,4 @@ class BackendLauncher {
   /// No-op on web
   static void stopBackend() {}
 }
+

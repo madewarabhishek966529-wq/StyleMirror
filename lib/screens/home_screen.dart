@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+
 import '../core/theme/app_theme.dart';
 import '../data/style_catalog_data.dart';
 import '../models/generation_model.dart';
@@ -10,6 +12,7 @@ import '../models/style_model.dart';
 import '../services/api_service.dart';
 import '../widgets/before_after_slider.dart';
 import '../widgets/consent_dialog.dart';
+import '../widgets/neon_flicker_text.dart';
 import '../widgets/step_indicator.dart';
 import '../widgets/style_card.dart';
 
@@ -27,8 +30,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  int _currentStep = 0; // 0: Selfie & Detection, 1: Target & Style Selection, 2: Result
+class HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  int _currentStep =
+      0; // 0: Selfie & Detection, 1: Target & Style Selection, 2: Result
 
   /// External style selection callback from Catalog or other deep links
   void selectStyleFromExternal(StyleModel style) {
@@ -86,12 +91,42 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   // HairFastGAN Color & Follicle Tone State (Personality Color)
   String _selectedHairColor = 'natural';
   final List<Map<String, dynamic>> _hairColorOptions = const [
-    {'id': 'natural', 'label': 'Natural Tone', 'color': Color(0xFF3E2723), 'personality': 'Authentic & Balanced'},
-    {'id': 'black', 'label': 'Jet Black', 'color': Color(0xFF1A1A1A), 'personality': 'Bold & Executive'},
-    {'id': 'dark_brown', 'label': 'Espresso Brown', 'color': Color(0xFF4E342E), 'personality': 'Warm & Sophisticated'},
-    {'id': 'blonde', 'label': 'Ash Blonde', 'color': Color(0xFFD7CCC8), 'personality': 'Modern & Platinum'},
-    {'id': 'grey', 'label': 'Silver Grey', 'color': Color(0xFF9E9E9E), 'personality': 'Distinguished & Charismatic'},
-    {'id': 'copper', 'label': 'Copper Auburn', 'color': Color(0xFFB5733A), 'personality': 'Artistic & Dynamic'},
+    {
+      'id': 'natural',
+      'label': 'Natural Tone',
+      'color': Color(0xFF3E2723),
+      'personality': 'Authentic & Balanced',
+    },
+    {
+      'id': 'black',
+      'label': 'Jet Black',
+      'color': Color(0xFF1A1A1A),
+      'personality': 'Bold & Executive',
+    },
+    {
+      'id': 'dark_brown',
+      'label': 'Espresso Brown',
+      'color': Color(0xFF4E342E),
+      'personality': 'Warm & Sophisticated',
+    },
+    {
+      'id': 'blonde',
+      'label': 'Ash Blonde',
+      'color': Color(0xFFD7CCC8),
+      'personality': 'Modern & Platinum',
+    },
+    {
+      'id': 'grey',
+      'label': 'Silver Grey',
+      'color': Color(0xFF9E9E9E),
+      'personality': 'Distinguished & Charismatic',
+    },
+    {
+      'id': 'copper',
+      'label': 'Copper Auburn',
+      'color': Color(0xFFB5733A),
+      'personality': 'Artistic & Dynamic',
+    },
   ];
 
   @override
@@ -141,8 +176,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   void _showPhotoSourcePicker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     showModalBottomSheet(
@@ -167,7 +206,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                         color: AppTheme.deepEmerald.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.face_retouching_natural, color: AppTheme.deepEmerald, size: 20),
+                      child: const Icon(
+                        Icons.face_retouching_natural,
+                        color: AppTheme.deepEmerald,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -176,11 +219,18 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                         children: [
                           Text(
                             'Select Portrait for AI Styling',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: primaryTextColor,
+                            ),
                           ),
                           Text(
                             'Python OpenCV will verify exactly 1 single face before styling.',
-                            style: TextStyle(fontSize: 11, color: secondaryTextColor),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: secondaryTextColor,
+                            ),
                           ),
                         ],
                       ),
@@ -198,11 +248,27 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                       color: AppTheme.deepEmerald.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.photo_library_outlined, color: AppTheme.deepEmerald),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: AppTheme.deepEmerald,
+                    ),
                   ),
-                  title: Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor)),
-                  subtitle: Text('Pick an existing solo portrait from your device', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 14, color: secondaryTextColor),
+                  title: Text(
+                    'Choose from Gallery',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: primaryTextColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Pick an existing solo portrait from your device',
+                    style: TextStyle(fontSize: 11, color: secondaryTextColor),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: secondaryTextColor,
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     _openGalleryPicker();
@@ -219,11 +285,27 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                       color: AppTheme.copper.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.camera_alt_outlined, color: AppTheme.copper),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: AppTheme.copper,
+                    ),
                   ),
-                  title: Text('Open Camera / Click Image', style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor)),
-                  subtitle: Text('Snap a fresh frontal portrait with clear lighting', style: TextStyle(fontSize: 11, color: secondaryTextColor)),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 14, color: secondaryTextColor),
+                  title: Text(
+                    'Open Camera / Click Image',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: primaryTextColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Snap a fresh frontal portrait with clear lighting',
+                    style: TextStyle(fontSize: 11, color: secondaryTextColor),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: secondaryTextColor,
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     _openCameraDialog();
@@ -234,7 +316,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 // Option 3: Quick 1-Tap Studio Models
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text('Studio Model Portraits (Tested with Python AI):', style: TextStyle(fontSize: 12, color: secondaryTextColor)),
+                  child: Text(
+                    'Studio Model Portraits (Tested with Python AI):',
+                    style: TextStyle(fontSize: 12, color: secondaryTextColor),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -252,10 +337,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: _selectedModelIndex == i ? AppTheme.deepEmerald.withOpacity(0.12) : cardBg,
+                                color: _selectedModelIndex == i
+                                    ? AppTheme.deepEmerald.withOpacity(0.12)
+                                    : cardBg,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: _selectedModelIndex == i ? AppTheme.deepEmerald : borderColor,
+                                  color: _selectedModelIndex == i
+                                      ? AppTheme.deepEmerald
+                                      : borderColor,
                                   width: _selectedModelIndex == i ? 1.5 : 1,
                                 ),
                               ),
@@ -267,7 +356,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                                       'assets/portraits/model_$i.jpg',
                                       height: 56,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40),
+                                      errorBuilder: (_, __, ___) =>
+                                          const Icon(Icons.person, size: 40),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -276,7 +366,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: _selectedModelIndex == i ? AppTheme.deepEmerald : primaryTextColor,
+                                      color: _selectedModelIndex == i
+                                          ? AppTheme.deepEmerald
+                                          : primaryTextColor,
                                     ),
                                   ),
                                 ],
@@ -298,15 +390,21 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   void _openCameraDialog() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
 
     showDialog(
       context: context,
       builder: (ctx) {
         return Dialog(
           backgroundColor: cardBg,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -323,17 +421,29 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             color: AppTheme.deepEmerald.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.camera_alt, color: AppTheme.deepEmerald, size: 18),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: AppTheme.deepEmerald,
+                            size: 18,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Frontal Camera Capture',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: primaryTextColor,
+                          ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, size: 20, color: secondaryTextColor),
+                      icon: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: secondaryTextColor,
+                      ),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -363,14 +473,22 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                         width: 160,
                         height: 210,
                         decoration: BoxDecoration(
-                          border: Border.all(color: AppTheme.deepEmerald, width: 2),
-                          borderRadius: const BorderRadius.all(Radius.elliptical(160, 210)),
+                          border: Border.all(
+                            color: AppTheme.deepEmerald,
+                            width: 2,
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.elliptical(160, 210),
+                          ),
                         ),
                       ),
                       Positioned(
                         bottom: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.65),
                             borderRadius: BorderRadius.circular(12),
@@ -393,7 +511,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 GestureDetector(
                   onTap: () {
                     Navigator.pop(ctx);
-                    _loadModelPreset(_selectedModelIndex, advanceToNextStep: true);
+                    _loadModelPreset(
+                      _selectedModelIndex,
+                      advanceToNextStep: true,
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.all(4),
@@ -411,7 +532,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 const SizedBox(height: 6),
                 Text(
                   'Click Image / Snap Selfie',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTextColor),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: primaryTextColor,
+                  ),
                 ),
               ],
             ),
@@ -424,8 +549,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   void _openGalleryPicker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     showModalBottomSheet(
@@ -453,17 +582,29 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             color: AppTheme.deepEmerald.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.photo_library, color: AppTheme.deepEmerald, size: 18),
+                          child: const Icon(
+                            Icons.photo_library,
+                            color: AppTheme.deepEmerald,
+                            size: 18,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Choose from Gallery',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: primaryTextColor,
+                          ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, size: 20, color: secondaryTextColor),
+                      icon: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: secondaryTextColor,
+                      ),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -489,10 +630,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: _selectedModelIndex == i ? AppTheme.deepEmerald.withOpacity(0.12) : cardBg,
+                                color: _selectedModelIndex == i
+                                    ? AppTheme.deepEmerald.withOpacity(0.12)
+                                    : cardBg,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: _selectedModelIndex == i ? AppTheme.deepEmerald : borderColor,
+                                  color: _selectedModelIndex == i
+                                      ? AppTheme.deepEmerald
+                                      : borderColor,
                                   width: _selectedModelIndex == i ? 1.5 : 1,
                                 ),
                               ),
@@ -513,7 +658,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: _selectedModelIndex == i ? AppTheme.deepEmerald : primaryTextColor,
+                                      color: _selectedModelIndex == i
+                                          ? AppTheme.deepEmerald
+                                          : primaryTextColor,
                                     ),
                                   ),
                                 ],
@@ -532,7 +679,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     );
   }
 
-  Future<void> _loadModelPreset(int modelNumber, {bool advanceToNextStep = false}) async {
+  Future<void> _loadModelPreset(
+    int modelNumber, {
+    bool advanceToNextStep = false,
+  }) async {
     setState(() {
       _isValidating = true;
       _validationError = null;
@@ -540,7 +690,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     });
 
     try {
-      final data = await DefaultAssetBundle.of(context).load('assets/portraits/model_$modelNumber.jpg');
+      final data = await DefaultAssetBundle.of(context)
+          .load('assets/portraits/model_$modelNumber.jpg');
       final sampleBytes = data.buffer.asUint8List();
 
       // Validate single face with Python backend
@@ -607,7 +758,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep', style: TextStyle(color: AppTheme.textMuted)),
+            child: const Text(
+              'Keep',
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
@@ -682,7 +836,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     if (_photoId == null) return;
     if (_styleTarget == 'hair' && _selectedHair == null) return;
     if (_styleTarget == 'beard' && _selectedBeard == null) return;
-    if (_styleTarget == 'both' && _selectedHair == null && _selectedBeard == null) return;
+    if (_styleTarget == 'both' &&
+        _selectedHair == null &&
+        _selectedBeard == null)
+      return;
 
     setState(() {
       _currentStep = 2;
@@ -694,8 +851,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
     final job = await widget.apiService.createGeneration(
       photoId: _photoId!,
-      hairStyleId: (_styleTarget == 'hair' || _styleTarget == 'both') ? _selectedHair?.id : null,
-      beardStyleId: (_styleTarget == 'beard' || _styleTarget == 'both') ? _selectedBeard?.id : null,
+      hairStyleId: (_styleTarget == 'hair' || _styleTarget == 'both')
+          ? _selectedHair?.id
+          : null,
+      beardStyleId: (_styleTarget == 'beard' || _styleTarget == 'both')
+          ? _selectedBeard?.id
+          : null,
       hairColor: _selectedHairColor,
     );
 
@@ -726,7 +887,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       styledBytes = base64Decode(finishedJob.resultBase64!);
     } else {
       // Pick best matching real photographic styled preview
-      String styledAsset = 'assets/portraits/transform_after_$_selectedModelIndex.jpg';
+      String styledAsset =
+          'assets/portraits/transform_after_$_selectedModelIndex.jpg';
       final hId = _selectedHair?.id;
       if (hId == 'H03' || hId == 'H16' || hId == 'H19') {
         styledAsset = 'assets/portraits/transform_after_2.jpg';
@@ -741,7 +903,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         styledBytes = data.buffer.asUint8List();
       } catch (_) {
         try {
-          final data = await DefaultAssetBundle.of(context).load('assets/portraits/transform_after_1.jpg');
+          final data = await DefaultAssetBundle.of(context)
+              .load('assets/portraits/transform_after_1.jpg');
           styledBytes = data.buffer.asUint8List();
         } catch (_) {
           styledBytes = _uploadedPhotoBytes;
@@ -762,26 +925,23 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.content_cut, color: AppTheme.primaryLight, size: 20),
-            ),
-            const SizedBox(width: 10),
-            const Text('StyleMirror'),
-          ],
+        title: const NeonFlickerText(
+          text: 'StyleMirror',
+          fontSize: 20,
         ),
         actions: [
           if (_photoId != null)
             TextButton.icon(
               onPressed: _deletePhotoNow,
-              icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.danger),
-              label: const Text('Delete Photo', style: TextStyle(color: AppTheme.danger, fontSize: 12)),
+              icon: const Icon(
+                Icons.delete_outline,
+                size: 16,
+                color: AppTheme.danger,
+              ),
+              label: const Text(
+                'Delete Photo',
+                style: TextStyle(color: AppTheme.danger, fontSize: 12),
+              ),
             ),
         ],
       ),
@@ -794,7 +954,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
               child: StepIndicator(
                 currentStep: _currentStep,
                 onStepTapped: (step) {
-                  if (step == 0 || (step == 1 && _faceVerified) || (step == 2 && _resultPhotoBytes != null)) {
+                  if (step == 0 ||
+                      (step == 1 && _faceVerified) ||
+                      (step == 2 && _resultPhotoBytes != null)) {
                     setState(() => _currentStep = step);
                   }
                 },
@@ -802,9 +964,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             ),
 
             // Main Step Content
-            Expanded(
-              child: _buildCurrentStepView(),
-            ),
+            Expanded(child: _buildCurrentStepView()),
           ],
         ),
       ),
@@ -812,7 +972,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           ? FloatingActionButton.extended(
               onPressed: _openPhotoOptionsSheet,
               elevation: 4,
-              icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 20,
+              ),
               label: const Text(
                 "Let's Start: Style Hair & Beard",
                 style: TextStyle(
@@ -845,7 +1009,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
   Widget _buildSelfieStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 96), // 96px bottom clearance for floating action button
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        16,
+        20,
+        96,
+      ), // 96px bottom clearance for floating action button
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -862,7 +1031,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           const Text(
             'Python AI verifies single frontal face and preserves your authentic facial identity.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -884,8 +1057,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildCurrentFaceStatusCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     if (_isValidating) {
@@ -901,7 +1078,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             const SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppTheme.deepEmerald),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppTheme.deepEmerald,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -910,7 +1090,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 children: [
                   Text(
                     'Python AI Validating Portrait...',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTextColor),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: primaryTextColor,
+                    ),
                   ),
                   Text(
                     'OpenCV Haar Cascade checking for exactly 1 single face',
@@ -941,8 +1125,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _detectedFaceCount > 1 ? 'Multiple Faces Detected' : 'No Face Detected',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.errorRed),
+                    _detectedFaceCount > 1
+                        ? 'Multiple Faces Detected'
+                        : 'No Face Detected',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.errorRed,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -954,7 +1144,13 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             ),
             TextButton(
               onPressed: _openPhotoOptionsSheet,
-              child: const Text('Try Again', style: TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Try Again',
+                style: TextStyle(
+                  color: AppTheme.errorRed,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -968,7 +1164,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _faceVerified ? AppTheme.deepEmerald.withOpacity(0.5) : borderColor,
+          color: _faceVerified
+              ? AppTheme.deepEmerald.withOpacity(0.5)
+              : borderColor,
           width: _faceVerified ? 1.5 : 1,
         ),
         boxShadow: const [AppTheme.subtleShadow],
@@ -984,7 +1182,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   height: 52,
                   child: _uploadedPhotoBytes != null
                       ? Image.memory(_uploadedPhotoBytes!, fit: BoxFit.cover)
-                      : Image.asset('assets/portraits/model_$_selectedModelIndex.jpg', fit: BoxFit.cover),
+                      : Image.asset(
+                          'assets/portraits/model_$_selectedModelIndex.jpg',
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               if (_faceVerified)
@@ -997,7 +1198,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                       color: AppTheme.deepEmerald,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, size: 12, color: Colors.white),
+                    child: const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
             ],
@@ -1010,23 +1215,34 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 Row(
                   children: [
                     Text(
-                      _faceVerified ? '✓ 1 Face Detected & Verified' : 'Portrait Loaded',
+                      _faceVerified
+                          ? '✓ 1 Face Detected & Verified'
+                          : 'Portrait Loaded',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: _faceVerified ? AppTheme.deepEmerald : primaryTextColor,
+                        color: _faceVerified
+                            ? AppTheme.deepEmerald
+                            : primaryTextColor,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.copper.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'Model #$_selectedModelIndex',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.copper),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.copper,
+                        ),
                       ),
                     ),
                   ],
@@ -1041,7 +1257,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           ),
           TextButton(
             onPressed: _openPhotoOptionsSheet,
-            child: const Text('Change', style: TextStyle(color: AppTheme.deepEmerald, fontWeight: FontWeight.w600, fontSize: 12)),
+            child: const Text(
+              'Change',
+              style: TextStyle(
+                color: AppTheme.deepEmerald,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -1051,8 +1274,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildStartActionCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Container(
@@ -1076,12 +1303,20 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   color: AppTheme.deepEmerald.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.style, color: AppTheme.deepEmerald, size: 20),
+                child: const Icon(
+                  Icons.style,
+                  color: AppTheme.deepEmerald,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
                 'Ready to Style Your Look?',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
+                ),
               ),
             ],
           ),
@@ -1106,10 +1341,17 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => setState(() => _currentStep = 1),
-                icon: const Icon(Icons.arrow_forward, color: AppTheme.deepEmerald, size: 18),
+                icon: const Icon(
+                  Icons.arrow_forward,
+                  color: AppTheme.deepEmerald,
+                  size: 18,
+                ),
                 label: const Text(
                   'Continue: Choose What to Style (Hair or Beard) ➔',
-                  style: TextStyle(color: AppTheme.deepEmerald, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: AppTheme.deepEmerald,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -1122,8 +1364,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildTransformationShowcase() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Container(
@@ -1147,7 +1393,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                     color: AppTheme.deepEmerald.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.auto_awesome, color: AppTheme.deepEmerald, size: 16),
+                  child: const Icon(
+                    Icons.auto_awesome,
+                    color: AppTheme.deepEmerald,
+                    size: 16,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1156,11 +1406,18 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                     children: [
                       Text(
                         'Instant Transformation Preview',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryTextColor),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: primaryTextColor,
+                        ),
                       ),
                       Text(
                         'Drag slider to see real AI hair & beard styling in action',
-                        style: TextStyle(fontSize: 11, color: secondaryTextColor),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: secondaryTextColor,
+                        ),
                       ),
                     ],
                   ),
@@ -1176,7 +1433,13 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: isDark ? AppTheme.darkCard : AppTheme.ivoryBackground,
-                  child: Center(child: Icon(Icons.person, size: 48, color: secondaryTextColor)),
+                  child: Center(
+                    child: Icon(
+                      Icons.person,
+                      size: 48,
+                      color: secondaryTextColor,
+                    ),
+                  ),
                 ),
               ),
               afterWidget: Image.asset(
@@ -1184,7 +1447,13 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: isDark ? AppTheme.darkCard : AppTheme.ivoryBackground,
-                  child: const Center(child: Icon(Icons.auto_awesome, size: 48, color: AppTheme.deepEmerald)),
+                  child: const Center(
+                    child: Icon(
+                      Icons.auto_awesome,
+                      size: 48,
+                      color: AppTheme.deepEmerald,
+                    ),
+                  ),
                 ),
               ),
               beforeLabel: 'BEFORE',
@@ -1206,10 +1475,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                           decoration: BoxDecoration(
                             color: _activeDemoIndex == i
                                 ? AppTheme.deepEmerald
-                                : (isDark ? AppTheme.darkCard : AppTheme.ivoryBackground),
+                                : (isDark
+                                      ? AppTheme.darkCard
+                                      : AppTheme.ivoryBackground),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _activeDemoIndex == i ? AppTheme.deepEmerald : borderColor,
+                              color: _activeDemoIndex == i
+                                  ? AppTheme.deepEmerald
+                                  : borderColor,
                             ),
                           ),
                           child: Text(
@@ -1218,7 +1491,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: _activeDemoIndex == i ? Colors.white : secondaryTextColor,
+                              color: _activeDemoIndex == i
+                                  ? Colors.white
+                                  : secondaryTextColor,
                             ),
                           ),
                         ),
@@ -1240,15 +1515,18 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
     final filteredHair = StyleCatalogData.hairstyles.where((s) {
       final matchesCat = _hairCategory == 'All' || s.category == _hairCategory;
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           s.name.toLowerCase().contains(query) ||
           s.promptHint.toLowerCase().contains(query);
       return matchesCat && matchesQuery;
     }).toList();
 
     final filteredBeard = StyleCatalogData.beardStyles.where((s) {
-      final matchesCat = _beardCategory == 'All' || s.category == _beardCategory;
-      final matchesQuery = query.isEmpty ||
+      final matchesCat =
+          _beardCategory == 'All' || s.category == _beardCategory;
+      final matchesQuery =
+          query.isEmpty ||
           s.name.toLowerCase().contains(query) ||
           s.promptHint.toLowerCase().contains(query);
       return matchesCat && matchesQuery;
@@ -1273,8 +1551,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
               hintText: _styleTarget == 'hair'
                   ? 'Search 25 hairstyles (e.g. fade, crop, pompadour)...'
                   : (_styleTarget == 'beard'
-                      ? 'Search 25 beard styles (e.g. stubble, goatee, short)...'
-                      : 'Search 50 hair & beard styles...'),
+                        ? 'Search 25 beard styles (e.g. stubble, goatee, short)...'
+                        : 'Search 50 hair & beard styles...'),
               prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
@@ -1290,9 +1568,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         ),
 
         // Catalog Display based on user choice
-        Expanded(
-          child: _buildTargetCatalogView(filteredHair, filteredBeard),
-        ),
+        Expanded(child: _buildTargetCatalogView(filteredHair, filteredBeard)),
 
         // Sticky Bottom Bar with current selection + Generate button
         _buildSelectionBottomBar(),
@@ -1303,8 +1579,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildStyleTargetSelector() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Container(
@@ -1318,7 +1598,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         children: [
           Text(
             'What would you like to style on your face?',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryTextColor),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: primaryTextColor,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -1358,7 +1642,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildHairColorSelector() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Container(
@@ -1372,7 +1658,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         children: [
           Row(
             children: [
-              const Icon(Icons.palette_outlined, size: 15, color: AppTheme.copper),
+              const Icon(
+                Icons.palette_outlined,
+                size: 15,
+                color: AppTheme.copper,
+              ),
               const SizedBox(width: 6),
               Text(
                 'COLOR OF HIS PERSONALITY (Hair & Follicle Tone):',
@@ -1405,11 +1695,14 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                     opt['label'] as String,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   selected: isSelected,
-                  onSelected: (_) => setState(() => _selectedHairColor = opt['id'] as String),
+                  onSelected: (_) =>
+                      setState(() => _selectedHairColor = opt['id'] as String),
                 );
               },
             ),
@@ -1428,8 +1721,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     final isSelected = _styleTarget == target;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Expanded(
@@ -1451,7 +1748,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: isSelected ? Colors.white : AppTheme.deepEmerald),
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? Colors.white : AppTheme.deepEmerald,
+              ),
               const SizedBox(height: 4),
               Text(
                 title,
@@ -1467,7 +1768,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 10,
-                  color: isSelected ? Colors.white.withOpacity(0.85) : secondaryTextColor,
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.85)
+                      : secondaryTextColor,
                 ),
               ),
             ],
@@ -1477,7 +1780,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildTargetCatalogView(List<StyleModel> filteredHair, List<StyleModel> filteredBeard) {
+  Widget _buildTargetCatalogView(
+    List<StyleModel> filteredHair,
+    List<StyleModel> filteredBeard,
+  ) {
     if (_styleTarget == 'hair') {
       return _buildCatalogGrid(
         styles: filteredHair,
@@ -1515,7 +1821,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   styles: filteredHair,
                   categories: StyleCatalogData.hairCategories,
                   activeCategory: _hairCategory,
-                  onCategorySelected: (cat) => setState(() => _hairCategory = cat),
+                  onCategorySelected: (cat) =>
+                      setState(() => _hairCategory = cat),
                   selectedStyle: _selectedHair,
                   onSelect: _toggleHairStyle,
                 ),
@@ -1523,7 +1830,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   styles: filteredBeard,
                   categories: StyleCatalogData.beardCategories,
                   activeCategory: _beardCategory,
-                  onCategorySelected: (cat) => setState(() => _beardCategory = cat),
+                  onCategorySelected: (cat) =>
+                      setState(() => _beardCategory = cat),
                   selectedStyle: _selectedBeard,
                   onSelect: _toggleBeardStyle,
                 ),
@@ -1600,12 +1908,16 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildSelectionBottomBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
-    final hasSelection = (_styleTarget == 'hair' && _selectedHair != null) ||
+    final hasSelection =
+        (_styleTarget == 'hair' && _selectedHair != null) ||
         (_styleTarget == 'beard' && _selectedBeard != null) ||
-        (_styleTarget == 'both' && (_selectedHair != null || _selectedBeard != null));
+        (_styleTarget == 'both' &&
+            (_selectedHair != null || _selectedBeard != null));
 
     String targetLabel = 'Try-On Look';
     if (_styleTarget == 'hair' && _selectedHair != null) {
@@ -1659,18 +1971,25 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                             const SizedBox(width: 6),
                           ],
                           if (_selectedBeard != null) ...[
-                            _buildSelectionPill(_selectedBeard!.name, isHair: false, onRemove: () {
-                              setState(() => _selectedBeard = null);
-                            }),
+                            _buildSelectionPill(
+                              _selectedBeard!.name,
+                              isHair: false,
+                              onRemove: () {
+                                setState(() => _selectedBeard = null);
+                              },
+                            ),
                           ],
                           if (!hasSelection)
                             Text(
                               _styleTarget == 'hair'
                                   ? 'Select a hairstyle from 25 cuts above'
                                   : (_styleTarget == 'beard'
-                                      ? 'Select a beard style from 25 trims above'
-                                      : 'Select hair and/or beard style above'),
-                              style: TextStyle(fontSize: 12, color: secondaryTextColor),
+                                        ? 'Select a beard style from 25 trims above'
+                                        : 'Select hair and/or beard style above'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: secondaryTextColor,
+                              ),
                             ),
                         ],
                       ),
@@ -1690,7 +2009,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildSelectionPill(String name, {required bool isHair, required VoidCallback onRemove}) {
+  Widget _buildSelectionPill(
+    String name, {
+    required bool isHair,
+    required VoidCallback onRemove,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pillColor = isHair ? AppTheme.deepEmerald : AppTheme.copper;
 
@@ -1699,15 +2022,16 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       decoration: BoxDecoration(
         color: pillColor.withOpacity(isDark ? 0.2 : 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: pillColor,
-          width: 1,
-        ),
+        border: Border.all(color: pillColor, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(isHair ? Icons.content_cut : Icons.brush, size: 12, color: pillColor),
+          Icon(
+            isHair ? Icons.content_cut : Icons.brush,
+            size: 12,
+            color: pillColor,
+          ),
           const SizedBox(width: 4),
           Text(
             name,
@@ -1720,7 +2044,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onRemove,
-            child: Icon(Icons.close, size: 12, color: isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
+            child: Icon(
+              Icons.close,
+              size: 12,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.slate,
+            ),
           ),
         ],
       ),
@@ -1731,8 +2059,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
   Widget _buildResultStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
 
     if (_isGenerating) {
       return Center(
@@ -1771,7 +2103,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
                   value: _generationProgress,
-                  backgroundColor: isDark ? AppTheme.darkCard : AppTheme.ivoryBackground,
+                  backgroundColor: isDark
+                      ? AppTheme.darkCard
+                      : AppTheme.ivoryBackground,
                   color: AppTheme.deepEmerald,
                   minHeight: 6,
                 ),
@@ -1788,10 +2122,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       );
     }
 
-    final hairColorLabel = _hairColorOptions.firstWhere(
-      (c) => c['id'] == _selectedHairColor,
-      orElse: () => {'label': 'Natural Tone'},
-    )['label'] as String;
+    final hairColorLabel =
+        _hairColorOptions.firstWhere(
+              (c) => c['id'] == _selectedHairColor,
+              orElse: () => {'label': 'Natural Tone'},
+            )['label']
+            as String;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1806,16 +2142,28 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             children: [
               if (_selectedHair != null)
                 Chip(
-                  avatar: const Icon(Icons.content_cut, size: 14, color: AppTheme.deepEmerald),
+                  avatar: const Icon(
+                    Icons.content_cut,
+                    size: 14,
+                    color: AppTheme.deepEmerald,
+                  ),
                   label: Text('Hair: ${_selectedHair!.name}'),
                 ),
               if (_selectedBeard != null)
                 Chip(
-                  avatar: const Icon(Icons.brush, size: 14, color: AppTheme.copper),
+                  avatar: const Icon(
+                    Icons.brush,
+                    size: 14,
+                    color: AppTheme.copper,
+                  ),
                   label: Text('Beard: ${_selectedBeard!.name}'),
                 ),
               Chip(
-                avatar: const Icon(Icons.palette, size: 14, color: AppTheme.deepEmerald),
+                avatar: const Icon(
+                  Icons.palette,
+                  size: 14,
+                  color: AppTheme.deepEmerald,
+                ),
                 label: Text('Tone: $hairColorLabel'),
               ),
             ],
@@ -1841,7 +2189,11 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.verified_user_outlined, size: 16, color: AppTheme.successGreen),
+                Icon(
+                  Icons.verified_user_outlined,
+                  size: 16,
+                  color: AppTheme.successGreen,
+                ),
                 SizedBox(width: 8),
                 Text(
                   '94% Identity Consistency • Facial Geometry Preserved',
@@ -1873,7 +2225,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         backgroundColor: AppTheme.deepEmerald,
-                        content: Text('✓ Style preview ready for barber consultation / gallery save.'),
+                        content: Text(
+                          '✓ Style preview ready for barber consultation / gallery save.',
+                        ),
                       ),
                     );
                   },
@@ -1888,10 +2242,17 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           // Delete Photo Button
           TextButton.icon(
             onPressed: _deletePhotoNow,
-            icon: const Icon(Icons.delete_forever, size: 18, color: AppTheme.errorRed),
+            icon: const Icon(
+              Icons.delete_forever,
+              size: 18,
+              color: AppTheme.errorRed,
+            ),
             label: const Text(
               'Delete My Photo Now',
-              style: TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppTheme.errorRed,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           Text(
@@ -1906,7 +2267,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   Widget _buildTwoImagesViewModeSelector() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final secondaryTextColor = isDark
+        ? AppTheme.darkTextSecondary
+        : AppTheme.slate;
     final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
 
     return Container(
@@ -1924,19 +2287,29 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: _twoImagesSideBySide ? AppTheme.deepEmerald : Colors.transparent,
+                color: _twoImagesSideBySide
+                    ? AppTheme.deepEmerald
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.view_column, size: 16, color: _twoImagesSideBySide ? Colors.white : secondaryTextColor),
+                  Icon(
+                    Icons.view_column,
+                    size: 16,
+                    color: _twoImagesSideBySide
+                        ? Colors.white
+                        : secondaryTextColor,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Side-by-Side (2 Images)',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: _twoImagesSideBySide ? Colors.white : secondaryTextColor,
+                      color: _twoImagesSideBySide
+                          ? Colors.white
+                          : secondaryTextColor,
                     ),
                   ),
                 ],
@@ -1949,19 +2322,29 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: !_twoImagesSideBySide ? AppTheme.deepEmerald : Colors.transparent,
+                color: !_twoImagesSideBySide
+                    ? AppTheme.deepEmerald
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.view_agenda, size: 16, color: !_twoImagesSideBySide ? Colors.white : secondaryTextColor),
+                  Icon(
+                    Icons.view_agenda,
+                    size: 16,
+                    color: !_twoImagesSideBySide
+                        ? Colors.white
+                        : secondaryTextColor,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Stacked (Top / Bottom)',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: !_twoImagesSideBySide ? Colors.white : secondaryTextColor,
+                      color: !_twoImagesSideBySide
+                          ? Colors.white
+                          : secondaryTextColor,
                     ),
                   ),
                 ],
@@ -1975,7 +2358,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
   Widget _buildTwoImagesComparisonView() {
     final beforeBytes = _uploadedPhotoBytes;
-    final afterBytes = _resultPhotoBytes ??
+    final afterBytes =
+        _resultPhotoBytes ??
         (_currentJob?.resultBase64 != null
             ? base64Decode(_currentJob!.resultBase64!)
             : null);
@@ -2037,7 +2421,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
           const SizedBox(height: 16),
           _buildSingleImageCard(
             title: 'AFTER',
-            subtitle: '${_selectedHair?.name ?? "Natural Hair"} + ${_selectedBeard?.name ?? "Natural Beard"}',
+            subtitle:
+                '${_selectedHair?.name ?? "Natural Hair"} + ${_selectedBeard?.name ?? "Natural Beard"}',
             badgeText: '✓ 100% Identity Preserved',
             badgeColor: AppTheme.deepEmerald,
             imageBytes: afterBytes,
@@ -2062,8 +2447,12 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
-    final primaryTextColor = isDark ? AppTheme.darkTextPrimary : AppTheme.inkNavy;
-    final borderColor = isAfter ? AppTheme.deepEmerald : (isDark ? AppTheme.darkBorder : AppTheme.borderIvory);
+    final primaryTextColor = isDark
+        ? AppTheme.darkTextPrimary
+        : AppTheme.inkNavy;
+    final borderColor = isAfter
+        ? AppTheme.deepEmerald
+        : (isDark ? AppTheme.darkBorder : AppTheme.borderIvory);
 
     return Container(
       decoration: BoxDecoration(
@@ -2082,9 +2471,16 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
-                    color: isAfter ? AppTheme.deepEmerald : (isDark ? AppTheme.darkBackground : AppTheme.borderIvory),
+                    color: isAfter
+                        ? AppTheme.deepEmerald
+                        : (isDark
+                              ? AppTheme.darkBackground
+                              : AppTheme.borderIvory),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -2114,7 +2510,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
           // Full Image Container
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(15),
+            ),
             child: SizedBox(
               height: fixedHeight,
               width: double.infinity,
@@ -2122,7 +2520,8 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   ? Image.memory(
                       imageBytes,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Image.asset(fallbackAsset, fit: BoxFit.cover),
+                      errorBuilder: (_, __, ___) =>
+                          Image.asset(fallbackAsset, fit: BoxFit.cover),
                     )
                   : Image.asset(fallbackAsset, fit: BoxFit.cover),
             ),
@@ -2130,6 +2529,5 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         ],
       ),
     );
-  }
   }
 }

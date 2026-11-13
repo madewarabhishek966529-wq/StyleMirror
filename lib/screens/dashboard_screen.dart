@@ -3,7 +3,9 @@ import '../core/theme/app_theme.dart';
 import '../data/style_catalog_data.dart';
 import '../models/face_profile_model.dart';
 import '../models/style_model.dart';
+import '../widgets/border_beam_button.dart';
 import '../widgets/face_analysis_dialog.dart';
+import '../widgets/neon_flicker_text.dart';
 import '../widgets/style_card.dart';
 
 /// Screen 1 & 4: Landing Page & Personalized Barbershop Dashboard
@@ -45,27 +47,9 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppTheme.deepEmerald.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.content_cut, color: AppTheme.deepEmerald, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'StyleMirror',
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: primaryTextColor,
-              ),
-            ),
-          ],
+        title: const NeonFlickerText(
+          text: 'StyleMirror',
+          fontSize: 20,
         ),
         actions: [
           TextButton(
@@ -96,32 +80,42 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: BorderBeamButton(
+        size: 58,
+        tooltip: 'Try On',
+        onTap: onNavigateToTryOn,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. HERO SECTION: "See the cut before you commit." ---
+            // --- 1. HERO SECTION: "See the cut before you commit." (Image 2) ---
             _buildHeroSection(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 24),
 
-            // --- 2. 3-FEATURE VALUE ROW ---
+            // --- 2. 3-FEATURE VALUE ROW (Image 2) ---
             _buildFeatureRow(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 24),
 
-            // --- 3. 3-STEP "HOW IT WORKS" SEQUENCE ---
+            // --- 3. READY TO STYLE YOUR LOOK CARD (Image 1 from user mockup) ---
+            _buildReadyToStyleCard(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
+            const SizedBox(height: 28),
+
+            // --- 4. 3-STEP "HOW IT WORKS" SEQUENCE ---
             _buildHowItWorks(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 28),
 
-            // --- 4. MY FACE PROFILE CARD (Critical Biometric Component) ---
+            // --- 5. MY FACE PROFILE CARD (Critical Biometric Component) ---
             _buildFaceProfileCard(context, primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 20),
 
-            // --- 5. VIRTUAL TRY-ON STUDIO QUICK BANNER ---
+            // --- 6. VIRTUAL TRY-ON STUDIO QUICK BANNER ---
             _buildQuickTryOnBanner(primaryTextColor, secondaryTextColor),
             const SizedBox(height: 28),
 
-            // --- 6. RECOMMENDED HAIRSTYLES FOR FACE SHAPE ---
+            // --- 7. RECOMMENDED HAIRSTYLES FOR FACE SHAPE ---
             _buildSectionHeader(
               title: 'Recommended Hairstyles for ${faceProfile.faceShape} Face',
               actionLabel: 'See All (25)',
@@ -132,7 +126,7 @@ class DashboardScreen extends StatelessWidget {
             _buildHorizontalStyleList(recommendedHair.isNotEmpty ? recommendedHair : popularHair),
             const SizedBox(height: 28),
 
-            // --- 7. RECOMMENDED BEARD STYLES FOR FACE SHAPE ---
+            // --- 8. RECOMMENDED BEARD STYLES FOR FACE SHAPE ---
             _buildSectionHeader(
               title: 'Recommended Beard Styles',
               actionLabel: 'See All (25)',
@@ -143,7 +137,7 @@ class DashboardScreen extends StatelessWidget {
             _buildHorizontalStyleList(recommendedBeard.isNotEmpty ? recommendedBeard : trendingBeards),
             const SizedBox(height: 28),
 
-            // --- 8. TRENDING MEN'S BARBER CUTS ---
+            // --- 9. TRENDING MEN'S BARBER CUTS ---
             _buildSectionHeader(
               title: 'Trending Men\'s Barber Cuts',
               actionLabel: 'Explore (50)',
@@ -154,15 +148,15 @@ class DashboardScreen extends StatelessWidget {
             _buildHorizontalStyleList(popularHair),
             const SizedBox(height: 24),
 
-            // --- 9. BARBER TIP OF THE DAY ---
+            // --- 10. BARBER TIP OF THE DAY ---
             _buildDailyGroomingTip(primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 20),
 
-            // --- 10. RECENT SIMULATION HISTORY ---
+            // --- 11. RECENT SIMULATION HISTORY ---
             _buildRecentHistoryCard(primaryTextColor, secondaryTextColor, cardBg, borderColor),
             const SizedBox(height: 32),
 
-            // --- 11. EDITORIAL FOOTER ---
+            // --- 12. EDITORIAL FOOTER ---
             _buildFooter(secondaryTextColor),
             const SizedBox(height: 24),
           ],
@@ -279,14 +273,16 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 18),
 
-          Row(
+          // Action Buttons with Wrap to prevent right-overflow on narrow screens
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
             children: [
               ElevatedButton.icon(
                 onPressed: onNavigateToTryOn,
                 icon: const Icon(Icons.auto_awesome, size: 16),
                 label: const Text('Start Virtual Try-On'),
               ),
-              const SizedBox(width: 12),
               OutlinedButton(
                 onPressed: onNavigateToExplore,
                 child: const Text('Browse 50 Styles'),
@@ -331,6 +327,108 @@ class DashboardScreen extends StatelessWidget {
           textSecondary: textSecondary,
         ),
       ],
+    );
+  }
+
+  /// Ready to Style Your Look Card (from User Mockup Image 1)
+  Widget _buildReadyToStyleCard(BuildContext context, Color textPrimary, Color textSecondary, Color cardBg, Color borderColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: const [AppTheme.cardShadow],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.deepEmerald.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.style, color: AppTheme.deepEmerald, size: 26),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Ready to Style Your Look?',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Choose from 25 haircuts and 25 beard trims tailored to your face shape.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+
+          // Button 1: Capture / Choose Selfie
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onNavigateToTryOn,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.deepEmerald,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.camera_alt_outlined, size: 18, color: Colors.white),
+              label: const Text(
+                'Capture / Choose Selfie',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Button 2: Continue: Choose What to Style (Hair or Beard) ->
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onNavigateToTryOn,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppTheme.deepEmerald.withOpacity(0.4), width: 1.2),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.arrow_forward, size: 16, color: AppTheme.deepEmerald),
+              label: const Text(
+                'Continue: Choose What to Style (Hair or Beard) ➔',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.deepEmerald),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Button 3: Let's Start: Style Hair & Beard
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onNavigateToTryOn,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.deepEmerald,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 4,
+              ),
+              icon: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
+              label: const Text(
+                "Let's Start: Style Hair & Beard",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

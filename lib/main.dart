@@ -8,6 +8,7 @@ import 'screens/my_styles_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/api_service.dart';
 import 'services/backend_launcher.dart';
+import 'widgets/border_beam_button.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -136,60 +137,98 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         decoration: BoxDecoration(
           color: navBg,
           border: Border(top: BorderSide(color: borderColor, width: 1)),
+          boxShadow: const [AppTheme.subtleShadow],
         ),
-        child: NavigationBarTheme(
-          data: NavigationBarThemeData(
-            backgroundColor: navBg,
-            indicatorColor: AppTheme.deepEmerald.withOpacity(0.12),
-            labelTextStyle: WidgetStateProperty.resolveWith((states) {
-              final isSelected = states.contains(WidgetState.selected);
-              return TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppTheme.deepEmerald : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
-              );
-            }),
-            iconTheme: WidgetStateProperty.resolveWith((states) {
-              final isSelected = states.contains(WidgetState.selected);
-              return IconThemeData(
-                size: 22,
-                color: isSelected ? AppTheme.deepEmerald : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate),
-              );
-            }),
-          ),
-          child: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
+        padding: const EdgeInsets.only(top: 6, bottom: 6),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildNavItem(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home,
                 label: 'Home',
+                index: 0,
+                isSelected: _currentIndex == 0,
               ),
-              NavigationDestination(
-                icon: Icon(Icons.explore_outlined),
-                selectedIcon: Icon(Icons.explore),
+              _buildNavItem(
+                icon: Icons.explore_outlined,
+                selectedIcon: Icons.explore,
                 label: 'Explore',
+                index: 1,
+                isSelected: _currentIndex == 1,
               ),
-              NavigationDestination(
-                icon: Icon(Icons.auto_awesome_outlined),
-                selectedIcon: Icon(Icons.auto_awesome),
-                label: 'Try On',
+
+              // CENTER: "+" Symbol Border Beam Button for Try-On
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: BorderBeamButton(
+                  size: 54,
+                  beamWidth: 2.8,
+                  label: 'Try On',
+                  tooltip: 'Try On Hair & Beard',
+                  onTap: () => setState(() => _currentIndex = 2),
+                ),
               ),
-              NavigationDestination(
-                icon: Icon(Icons.bookmark_outline),
-                selectedIcon: Icon(Icons.bookmark),
+
+              _buildNavItem(
+                icon: Icons.bookmark_outline,
+                selectedIcon: Icons.bookmark,
                 label: 'My Styles',
+                index: 3,
+                isSelected: _currentIndex == 3,
               ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
+              _buildNavItem(
+                icon: Icons.person_outline,
+                selectedIcon: Icons.person,
                 label: 'Profile',
+                index: 4,
+                isSelected: _currentIndex == 4,
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required int index,
+    required bool isSelected,
+  }) {
+    final isDark = widget.isDarkMode;
+    final color = isSelected
+        ? AppTheme.deepEmerald
+        : (isDark ? AppTheme.darkTextSecondary : AppTheme.slate);
+
+    return InkWell(
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(isSelected ? selectedIcon : icon, size: 22, color: color),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
     );
   }
 }

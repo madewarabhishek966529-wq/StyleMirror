@@ -135,11 +135,12 @@ class StyleMirrorApiService {
     }
   }
 
-  /// Initiate a generation job
+  /// Initiate a generation job with HairFast parameters
   Future<GenerationJob> createGeneration({
     required String photoId,
     String? hairStyleId,
     String? beardStyleId,
+    String hairColor = 'natural',
     String view = 'front',
   }) async {
     try {
@@ -153,6 +154,7 @@ class StyleMirrorApiService {
         'photo_id': photoId,
         if (hairStyleId != null) 'hair_style_id': hairStyleId,
         if (beardStyleId != null) 'beard_style_id': beardStyleId,
+        'hair_color': hairColor,
         'view': view,
       });
 
@@ -183,6 +185,7 @@ class StyleMirrorApiService {
         photoId: photoId,
         hairStyleId: hairStyleId,
         beardStyleId: beardStyleId,
+        hairColor: hairColor,
         view: view,
         status: GenerationStatus.queued,
         createdAt: DateTime.now(),

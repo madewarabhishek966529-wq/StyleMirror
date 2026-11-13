@@ -12,6 +12,7 @@ class GenerationJob {
   final String photoId;
   final String? hairStyleId;
   final String? beardStyleId;
+  final String? hairColor;
   final String view;
   final GenerationStatus status;
   final String? resultUrl;
@@ -26,6 +27,7 @@ class GenerationJob {
     required this.photoId,
     this.hairStyleId,
     this.beardStyleId,
+    this.hairColor = 'natural',
     this.view = 'front',
     required this.status,
     this.resultUrl,
@@ -60,6 +62,7 @@ class GenerationJob {
       photoId: json['photo_id'] as String? ?? '',
       hairStyleId: json['hair_style_id'] as String?,
       beardStyleId: json['beard_style_id'] as String?,
+      hairColor: json['hair_color'] as String? ?? 'natural',
       view: json['view'] as String? ?? 'front',
       status: parseStatus(json['status'] as String?),
       resultUrl: json['result_url'] as String?,
@@ -77,6 +80,7 @@ class GenerationJob {
       'photo_id': photoId,
       'hair_style_id': hairStyleId,
       'beard_style_id': beardStyleId,
+      'hair_color': hairColor,
       'view': view,
       'status': status.name,
       'result_url': resultUrl,

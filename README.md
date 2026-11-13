@@ -11,10 +11,11 @@
 4. [Complete 13-Screen Application Suite](#-complete-13-screen-application-suite)
 5. [Visual Design System & Color Palette](#-visual-design-system--color-palette)
 6. [System Architecture & Data Flow](#-system-architecture--data-flow)
-7. [Repository File Structure](#-repository-file-structure)
-8. [Automated Full-Stack Launch (Zero-Config)](#-automated-full-stack-launch-zero-config)
-9. [Automated Testing & Verification Suite](#-automated-testing--verification-suite)
-10. [Security, Privacy & Data Retention](#-security-privacy--data-retention)
+7. [HairFastGAN AI Architecture & Pipeline Integration](#-hairfastgan-ai-architecture--pipeline-integration)
+8. [Repository File Structure](#-repository-file-structure)
+9. [Automated Full-Stack Launch (Zero-Config)](#-automated-full-stack-launch-zero-config)
+10. [Automated Testing & Verification Suite](#-automated-testing--verification-suite)
+11. [Security, Privacy & Data Retention](#-security-privacy--data-retention)
 
 ---
 
@@ -312,6 +313,70 @@ StyleMirror features a professional, premium editorial aesthetic: **a high-end m
 
 ---
 
+## 🧬 HairFastGAN AI Architecture & Pipeline Integration
+
+StyleMirror incorporates the core design and algorithmic principles of **HairFastGAN** (*NeurIPS 2024 - Realistic and Robust Hair Transfer with a Fast Encoder-Based Approach*, located in [`project/`](project/)) directly into its native full-stack engine ([`backend/app/services/hairfast_engine.py`](backend/app/services/hairfast_engine.py)).
+
+### 1. The Core HairFast Concept: `(Face, Shape, Color)` Triplet
+Standard face-swap filters blindly replace the entire head, obliterating the user's natural bone structure, forehead proportions, and facial features. HairFastGAN decomposes hair transfer into three independent orthogonal modalities:
+1. **Target Face Identity ($F$)**: The user's portrait providing facial landmarks, bone structure, skin complexion, and lighting conditions.
+2. **Target Shape Silhouette ($S$)**: The structural haircut volume, boundaries, and contours extracted from curated catalog styles (`H01`–`H25`).
+3. **Target Follicle Color & Tone ($C$)**: The hair color palette and luminance transfer (Natural, Jet Black, Espresso Brown, Ash Blonde, Silver Grey, Copper Auburn).
+
+```
+ ┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
+ │   Target Face Photo    │      │  Catalog Hair Silhouette│     │   Hair Follicle Tone   │
+ │   (User Portrait $F$)  │      │   ($S$: H01 - H25 Cut) │      │   ($C$: Natural/Tone)  │
+ └───────────┬────────────┘      └───────────┬────────────┘      └───────────┬────────────┘
+             │                               │                               │
+             ▼                               ▼                               ▼
+    ┌─────────────────┐             ┌─────────────────┐             ┌─────────────────┐
+    │ 1. Eye-Line Quad│             │ 2. Alpha Mask   │             │ 3. Color & Tone │
+    │    Alignment    │             │    Extraction   │             │    Transfer     │
+    └────────┬────────┘             └────────┬────────┘             └────────┬────────┘
+             │                               │                               │
+             └───────────────────────┬───────┴───────────────────────────────┘
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │ 4. Boundary Poisson Blend & │
+                      │  Identity Protection Shield │
+                      └──────────────┬──────────────┘
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │    Photorealistic Result    │
+                      │   (Preserved 100% Identity) │
+                      └─────────────────────────────┘
+```
+
+### 2. The 4-Stage Mathematical Pipeline
+
+#### Stage 1: 68-Point Facial Landmark & Eye-Line Quad Alignment
+* Inspired by [`project/utils/shape_predictor.py`](project/utils/shape_predictor.py), the engine detects pupil landmarks $(x_L, y_L)$ and $(x_R, y_R)$.
+* Computes horizontal head tilt angle:
+  $$\theta = \arctan2(y_R - y_L, x_R - x_L)$$
+* Normalizes head orientation using an affine rotation quad around face center $C_{\text{face}}$, aligning eyes to a strict horizontal baseline before hair grafting.
+
+#### Stage 2: Hair Silhouette Extraction & Dynamic Scalp Fitting
+* Retrieves canonical barber reference assets from [`assets/styles/hair/`](assets/styles/hair/).
+* Extracts the upper hair volume mask, separates it from background pixels using morphological erosion and dilation (`DilateErosion` in [`project/utils/image_utils.py`](project/utils/image_utils.py)), and scales the silhouette quad proportionally to the user's cranial width.
+
+#### Stage 3: Follicle Color & Melanin Tone Transfer
+* Allows users to select their desired hair color directly from the Flutter UI:
+  * **Natural Tone**: Preserves user's authentic follicle lighting and tint.
+  * **Jet Black**: Enhances dark melanin depth with balanced specular highlights.
+  * **Espresso Brown**: Rich warm undertones with soft barbershop diffusion.
+  * **Ash Blonde**: De-pigmented blonde tones with cool platinum undertones.
+  * **Silver Grey**: Modern mature salt-and-pepper styling with balanced luminance.
+  * **Copper Auburn**: Vibrant warm copper follicle highlights.
+* The tone palette is blended across high-frequency hair texture channels while preserving realistic hair shine and strand definition.
+
+#### Stage 4: Boundary Poisson Blending & Identity Preservation Shield
+* **Identity Preservation Shield**: An inner facial bounding ellipse completely locks user's eyes, eyebrows, nose, mouth, and skin texture to **zero hair alpha**, preventing any hair bleeding into the face.
+* **Feathered Hairline Transition**: A Gaussian falloff kernel ($\sigma = 9.0$) smooths the hairline perimeter, producing natural strand-to-skin transitions.
+* **Unwarping**: Applies inverse affine transformation to restore the portrait to the user's authentic angle and geometry.
+
+---
+
 ## 📂 Repository File Structure
 
 ```
@@ -363,7 +428,7 @@ stylemirror/
 │   ├── app/
 │   │   ├── ai/                      # Base AI provider, Gemini Vision, and mock engine
 │   │   ├── routers/                 # API endpoints (/styles, /photos, /generations, etc.)
-│   │   ├── services/                # OpenCV face check, KeyPool rotation, 24h purge
+│   │   ├── services/                # OpenCV face check, HairFastGAN engine, KeyPool, 24h purge
 │   │   ├── config.py                # Pydantic v2 environment configuration
 │   │   ├── db.py                    # SQLAlchemy SQLite engine & session management
 │   │   ├── models.py                # Database entity models
@@ -372,8 +437,9 @@ stylemirror/
 │   ├── scripts/
 │   │   ├── seed_styles.py           # SQLite styles database seeder
 │   │   └── crop_sheet.py            # Reference portrait cropper utility
-│   ├── tests/                       # Pytest Backend Test Suite (15 tests)
+│   ├── tests/                       # Pytest Backend Test Suite (18 tests)
 │   │   ├── test_generations.py      # Generation workflow & parameters
+│   │   ├── test_hairfast.py         # HairFastGAN landmark, color & blending tests
 │   │   ├── test_keys.py             # KeyPool rotation & quota fallback
 │   │   ├── test_photos.py           # Photo upload validation & instant wipe
 │   │   ├── test_storage_cleanup.py  # 24-hour TTL automated purge
@@ -381,6 +447,7 @@ stylemirror/
 │   │   └── test_suggestions_looks.py# Face-shape recommendation matrix
 │   ├── requirements.txt             # Python backend dependencies
 │   └── .env.example                 # Environment configuration template
+├── project/                         # Upstream HairFastGAN (NeurIPS 2024) reference implementation
 ├── docs/                            # Deep-dive design, API & QA specifications
 ├── run.bat                          # 1-click Windows Command Prompt launcher
 └── run.ps1                          # 1-click PowerShell full-stack runner
@@ -428,13 +495,14 @@ flutter test
 * **`test/models_test.dart`**: Tests JSON serialization and deserialization of `StyleModel`, `PhotoModel`, `GenerationModel`, and `FaceProfile`.
 * **`test/backend_launcher_test.dart`**: Tests health check socket probing and safe background process spawning.
 
-### 2. Python Backend Pytest Suite (`15 / 15 Passed`)
+### 2. Python Backend Pytest Suite (`18 / 18 Passed`)
 Execute via:
 ```bash
 python -m pytest backend/tests
 ```
 * **`test_photos.py`**: Tests photo upload validation, OpenCV rejection of photos without faces, and immediate permanent deletion.
 * **`test_styles.py`**: Tests full catalog querying and filtering by `type=hair` and `type=beard`.
+* **`test_hairfast.py`**: Tests HairFastGAN landmark detection, eye-line angle calculation, color tone transfer matrices, and Poisson blending pipeline.
 * **`test_generations.py`**: Tests generation creation, parameter validation, asynchronous job polling, and combination caching.
 * **`test_keys.py`**: Tests `KeyPool` round-robin rotation, 429 quota exhaustion skipping, and secret key masking.
 * **`test_storage_cleanup.py`**: Tests the 24-hour TTL automated purge job removing expired photos and records.

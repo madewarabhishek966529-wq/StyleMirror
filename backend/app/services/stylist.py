@@ -313,13 +313,26 @@ def apply_beard_overlay(
 def transform_portrait(
     image_bytes: bytes,
     hair_style_id: Optional[str] = None,
-    beard_style_id: Optional[str] = None
+    beard_style_id: Optional[str] = None,
+    hair_color: str = "natural",
 ) -> bytes:
     """
-    Main entry point: Transforms portrait bytes with selected hairstyle and/or beard style.
+    Main entry point: Transforms portrait bytes with selected hairstyle and/or beard style
+    using the HairFastGAN 4-stage pipeline (alignment, shape extraction, color transfer, boundary blending).
     Preserves user face, identity, background, and lighting.
     Returns high-quality JPEG bytes.
     """
+    try:
+        from .hairfast_engine import HairFastEngine
+        return HairFastEngine.transform(
+            image_bytes,
+            hair_style_id=hair_style_id,
+            beard_style_id=beard_style_id,
+            hair_color=hair_color,
+        )
+    except Exception as e:
+        logger.warning(f"HairFastEngine transform error, falling back to basic overlay: {e}")
+
     pil_img = Image.open(io.BytesIO(image_bytes))
     pil_img = ImageOps.exif_transpose(pil_img).convert("RGB")
     bgr = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)

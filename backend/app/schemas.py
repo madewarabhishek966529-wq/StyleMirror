@@ -25,6 +25,7 @@ class GenerationCreateRequest(BaseModel):
     photo_id: str
     hair_style_id: Optional[str] = None
     beard_style_id: Optional[str] = None
+    hair_color: Optional[str] = "natural"
     view: str = "front"
 
 class GenerationResponse(BaseModel):
@@ -32,6 +33,7 @@ class GenerationResponse(BaseModel):
     photo_id: str
     hair_style_id: Optional[str] = None
     beard_style_id: Optional[str] = None
+    hair_color: Optional[str] = "natural"
     view: str = "front"
     status: str
     result_url: Optional[str] = None

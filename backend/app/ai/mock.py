@@ -10,6 +10,7 @@ class MockImageProvider(ImageProvider):
         reference_images: list[bytes] | None = None,
         hair_style_id: str | None = None,
         beard_style_id: str | None = None,
+        hair_color: str = "natural",
     ) -> bytes:
         if hair_style_id or beard_style_id:
             try:
@@ -18,6 +19,7 @@ class MockImageProvider(ImageProvider):
                     user_image,
                     hair_style_id=hair_style_id,
                     beard_style_id=beard_style_id,
+                    hair_color=hair_color,
                 )
             except Exception:
                 pass

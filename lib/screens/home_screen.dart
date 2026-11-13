@@ -80,6 +80,17 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     'QUIFF (H12) + FULL BEARD (B05)',
   ];
 
+  // HairFastGAN Color & Follicle Tone State
+  String _selectedHairColor = 'natural';
+  final List<Map<String, dynamic>> _hairColorOptions = const [
+    {'id': 'natural', 'label': 'Natural Tone', 'color': Color(0xFF3E2723)},
+    {'id': 'black', 'label': 'Jet Black', 'color': Color(0xFF1A1A1A)},
+    {'id': 'dark_brown', 'label': 'Espresso Brown', 'color': Color(0xFF4E342E)},
+    {'id': 'blonde', 'label': 'Ash Blonde', 'color': Color(0xFFD7CCC8)},
+    {'id': 'grey', 'label': 'Silver Grey', 'color': Color(0xFF9E9E9E)},
+    {'id': 'copper', 'label': 'Copper Auburn', 'color': Color(0xFFB5733A)},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -394,7 +405,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       _currentStep = 2;
       _isGenerating = true;
       _generationProgress = 0.15;
-      _generationStage = 'Python OpenCV detecting facial landmarks on user face...';
+      _generationStage = 'HairFastGAN Stage 1: Detecting facial landmarks & eye orientation...';
       _resultPhotoBytes = null;
     });
 
@@ -402,6 +413,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       photoId: _photoId!,
       hairStyleId: (_styleTarget == 'hair' || _styleTarget == 'both') ? _selectedHair?.id : null,
       beardStyleId: (_styleTarget == 'beard' || _styleTarget == 'both') ? _selectedBeard?.id : null,
+      hairColor: _selectedHairColor,
     );
 
     _pollGeneration(job.id);
@@ -409,10 +421,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
 
   void _pollGeneration(String jobId) async {
     final stages = [
-      'Sculpting selected style onto user face geometry...',
-      'Synthesizing photorealistic follicle texture & skin lighting...',
-      'Blending natural hairline & jaw contours with alpha feathering...',
-      'Verifying facial identity preservation (eyes, nose, mouth)...',
+      'Stage 1: Landmark Alignment & Eye-Line Affine Quad Warp (HairFastGAN)...',
+      'Stage 2: Hair Shape Silhouette Extraction & Latent Alignment...',
+      'Stage 3: Follicle Texture & Tone Synthesis (${_selectedHairColor.toUpperCase()})...',
+      'Stage 4: Poisson Boundary Blending & Identity Preservation Shield...',
     ];
 
     for (int i = 0; i < stages.length; i++) {
@@ -1019,6 +1031,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
         // Target Selection Header ("What do you want to make? Hairstyle or Beard?")
         _buildStyleTargetSelector(),
 
+        // HairFastGAN Hair Color Tone selector when hair is active
+        if (_styleTarget == 'hair' || _styleTarget == 'both')
+          _buildHairColorSelector(),
+
         // Search Bar
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
@@ -1105,6 +1121,70 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                 subtitle: 'Combined',
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHairColorSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppTheme.darkCard : AppTheme.cardWhite;
+    final secondaryTextColor = isDark ? AppTheme.darkTextSecondary : AppTheme.slate;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.borderIvory;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: cardBg,
+        border: Border(bottom: BorderSide(color: borderColor)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.palette_outlined, size: 14, color: AppTheme.copper),
+              const SizedBox(width: 6),
+              Text(
+                'HAIR COLOR (HairFastGAN Tone Transfer):',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: secondaryTextColor,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 34,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _hairColorOptions.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final opt = _hairColorOptions[i];
+                final isSelected = _selectedHairColor == opt['id'];
+                return ChoiceChip(
+                  visualDensity: VisualDensity.compact,
+                  avatar: CircleAvatar(
+                    radius: 5,
+                    backgroundColor: opt['color'] as Color,
+                  ),
+                  label: Text(
+                    opt['label'] as String,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => setState(() => _selectedHairColor = opt['id'] as String),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -1339,9 +1419,15 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                       Row(
                         children: [
                           if (_selectedHair != null) ...[
-                            _buildSelectionPill(_selectedHair!.name, isHair: true, onRemove: () {
-                              setState(() => _selectedHair = null);
-                            }),
+                            _buildSelectionPill(
+                              _selectedHairColor == 'natural'
+                                  ? _selectedHair!.name
+                                  : '${_selectedHair!.name} • ${_hairColorOptions.firstWhere((c) => c['id'] == _selectedHairColor)['label']}',
+                              isHair: true,
+                              onRemove: () {
+                                setState(() => _selectedHair = null);
+                              },
+                            ),
                             const SizedBox(width: 6),
                           ],
                           if (_selectedBeard != null) ...[
